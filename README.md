@@ -1,7 +1,7 @@
-# Quantum IDE (論理・量子ハイブリッド回路シミュレータ)
+# Logic Quantum IDE (論理・量子ハイブリッド回路シミュレータ)
 
 ## 概要
-Quantum IDEは、ブラウザ上で動作するプロ仕様の論理回路および量子回路シミュレータです。
+Logic Quantum IDEは、ブラウザ上で動作するプロ仕様の論理回路および量子回路シミュレータです。
 フロントエンドにReact (Vite + TypeScript + React Flow + Zustand)、バックエンドにFastAPIとQiskitを採用し、直感的なUIでの回路設計と、バックエンドでの高度な統合シミュレーションを提供します。
 
 ### 主な機能
