@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>量子回路可視化テスト - CX/CZ演出強化</title>
+    <style>
+        body {
+            background-color: #111827;
+            color: white;
+            font-family: sans-serif;
+            padding: 40px;
+        }
+
+        h3 {
+            color: #9CA3AF;
+            margin-top: 40px;
+        }
+
+        /* --- 基本の発光エフェクト --- */
+        .glow-cyan {
+            filter: drop-shadow(0 0 6px #06B6D4) drop-shadow(0 0 12px #06B6D4);
+        }
+
+        .glow-white {
+            filter: drop-shadow(0 0 8px #FFFFFF);
+        }
+
+        .glow-purple {
+            filter: drop-shadow(0 0 6px #A855F7) drop-shadow(0 0 12px #A855F7);
+        }
+
+        /* --- 重ね合わせの流れる点線 --- */
+        .superposition-line {
+            stroke-dasharray: 12, 8;
+            animation: flow 1s linear infinite;
+        }
+
+        @keyframes flow {
+            to {
+                stroke-dashoffset: -20;
+            }
+        }
+
+        /* --- アニメーションの同期設定（4秒周期） --- */
+        /* 1. スキャナーの移動 */
+        .scanner {
+            animation: scan 4s linear infinite;
+        }
+
+        @keyframes scan {
+            0% {
+                transform: translateX(0px);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+
+            /* 50px から 450px へ移動 */
+        }
+
+        /* 2. パルスの落下（スキャナーが中央の250pxに来る 50% のタイミングで発動） */
+        .pulse-drop {
+            animation: drop 4s ease-in infinite;
+        }
+
+        @keyframes drop {
+
+            0%,
+            49% {
+                opacity: 0;
+                transform: translateY(0);
+            }
+
+            50% {
+                opacity: 1;
+                transform: translateY(0);
+                filter: brightness(2);
+            }
+
+            /* 制御点から出現 */
+            53% {
+                opacity: 1;
+                transform: translateY(100px);
+            }
+
+            /* わずか0.12秒でターゲットへ落下 */
+            54%,
+            100% {
+                opacity: 0;
+                transform: translateY(100px);
+            }
+
+            /* 命中したら消える */
+        }
+
+        /* 3. ターゲットのインパクト（パルスが命中する 53% のタイミングで発動） */
+        .target-impact {
+            /* 拡大の中心をターゲットアイコンの中心に設定 (x=250, y=160) */
+            transform-origin: 250px 160px;
+            animation: impact 4s ease-out infinite;
+        }
+
+        @keyframes impact {
+
+            0%,
+            52% {
+                transform: scale(1);
+                stroke-width: 2px;
+            }
+
+            53% {
+                transform: scale(1.4);
+                stroke-width: 4px;
+                filter: drop-shadow(0 0 15px #fff);
+            }
+
+            /* 命中時に膨張して強く発光 */
+            60% {
+                transform: scale(1);
+                stroke-width: 2px;
+            }
+
+            /* すぐに戻る */
+            100% {
+                transform: scale(1);
+                stroke-width: 2px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h3>パターン4：CX（CNOT）ゲート - パルスと波紋の演出</h3>
+    <svg width="500" height="220" xmlns="http://www.w3.org/2000/svg">
+        <line x1="50" y1="60" x2="250" y2="60" stroke="#06B6D4" stroke-width="3" class="glow-cyan superposition-line" />
+        <line x1="50" y1="160" x2="250" y2="160" stroke="#374151" stroke-width="3" />
+        <line x1="250" y1="60" x2="450" y2="60" stroke="#06B6D4" stroke-width="3"
+            class="glow-cyan superposition-line" />
+        <line x1="250" y1="160" x2="450" y2="160" stroke="#06B6D4" stroke-width="3"
+            class="glow-cyan superposition-line" />
+        <text x="20" y="65" fill="#9CA3AF" font-size="14">q0</text>
+        <text x="20" y="165" fill="#9CA3AF" font-size="14">q1</text>
+
+        <line x1="250" y1="60" x2="250" y2="160" stroke="#6B7280" stroke-width="2" />
+        <circle cx="250" cy="60" r="6" fill="#F3F4F6" class="glow-white" />
+
+        <g class="target-impact glow-white">
+            <circle cx="250" cy="160" r="14" fill="#111827" stroke="#F3F4F6" />
+            <line x1="250" y1="146" x2="250" y2="174" stroke="#F3F4F6" stroke-width="2" />
+            <line x1="236" y1="160" x2="264" y2="160" stroke="#F3F4F6" stroke-width="2" />
+        </g>
+
+        <circle cx="250" cy="60" r="4" fill="#FFFFFF" class="glow-white pulse-drop" />
+
+        <line x1="50" y1="20" x2="50" y2="200" stroke="#FFFFFF" stroke-width="2" class="glow-white scanner" />
+    </svg>
+
+
+    <h3>パターン5：CZゲート - アイコン違い（ドット）</h3>
+    <svg width="500" height="220" xmlns="http://www.w3.org/2000/svg">
+        <line x1="50" y1="60" x2="250" y2="60" stroke="#A855F7" stroke-width="3"
+            class="glow-purple superposition-line" />
+        <line x1="50" y1="160" x2="250" y2="160" stroke="#A855F7" stroke-width="3"
+            class="glow-purple superposition-line" />
+        <line x1="250" y1="60" x2="450" y2="60" stroke="#A855F7" stroke-width="3"
+            class="glow-purple superposition-line" />
+        <line x1="250" y1="160" x2="450" y2="160" stroke="#A855F7" stroke-width="3"
+            class="glow-purple superposition-line" />
+        <text x="20" y="65" fill="#9CA3AF" font-size="14">q0</text>
+        <text x="20" y="165" fill="#9CA3AF" font-size="14">q1</text>
+
+        <line x1="250" y1="60" x2="250" y2="160" stroke="#6B7280" stroke-width="2" />
+        <circle cx="250" cy="60" r="6" fill="#F3F4F6" class="glow-white" />
+
+        <circle cx="250" cy="160" r="8" fill="#F3F4F6" class="target-impact glow-white" />
+
+        <circle cx="250" cy="60" r="4" fill="#FFFFFF" class="glow-white pulse-drop" />
+
+        <line x1="50" y1="20" x2="50" y2="200" stroke="#FFFFFF" stroke-width="2" class="glow-white scanner" />
+    </svg>
+
+</body>
+
+</html>
