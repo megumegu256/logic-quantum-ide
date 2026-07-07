@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 import { BarChart2, CircleDashed, ListTree, ArrowDownUp } from 'lucide-react';
 
 // --- Types ---
-type Tab = 'counts' | 'phase' | 'statevector';
+type Tab = 'process' | 'counts' | 'phase' | 'statevector';
 type SortMode = 'basis' | 'frequency';
 type DisplayMode = 'rect' | 'polar' | 'root';
 
@@ -91,7 +91,7 @@ const QuantumResultsPanel: React.FC = () => {
   const [sortMode, setSortMode] = useState<SortMode>('basis');
   const [displayMode, setDisplayMode] = useState<DisplayMode>('rect');
 
-  const { counts, statevector, error } = quantumSimulationResult || {};
+  const { counts, statevector, error, measured_qubits, calc_steps } = quantumSimulationResult || {};
 
   const filteredStatevector = useMemo(() => {
     return parseStatevector(statevector || []);
@@ -99,14 +99,37 @@ const QuantumResultsPanel: React.FC = () => {
 
   const countsData = useMemo(() => {
     if (!counts) return [];
-    const data = Object.entries(counts).map(([state, count]) => ({ state, count: count as number }));
+    
+    // 集計用マップ (フォーマット済みの文字列 -> カウント)
+    const aggregatedCounts: Record<string, number> = {};
+    
+    Object.entries(counts).forEach(([state, count]) => {
+      let formattedState = state;
+      // 測定されたビットのみを表示し、測定されていないビットは "_" でマスクする
+      if (measured_qubits && measured_qubits.length > 0) {
+        let masked = "";
+        for (let i = 0; i < state.length; i++) {
+          const qIndex = state.length - 1 - i; // Qiskitの出力は右端がq0
+          if (measured_qubits.includes(qIndex)) {
+            masked += state[i];
+          } else {
+            masked += "_";
+          }
+        }
+        formattedState = masked;
+      }
+      aggregatedCounts[formattedState] = (aggregatedCounts[formattedState] || 0) + (count as number);
+    });
+
+    const data = Object.entries(aggregatedCounts).map(([state, count]) => ({ state, count }));
+    
     if (sortMode === 'frequency') {
       data.sort((a, b) => b.count - a.count);
     } else {
       data.sort((a, b) => a.state.localeCompare(b.state));
     }
     return data;
-  }, [counts, sortMode]);
+  }, [counts, sortMode, measured_qubits]);
 
   const totalShots = useMemo(() => countsData.reduce((acc, curr) => acc + curr.count, 0), [countsData]);
 
@@ -138,6 +161,9 @@ const QuantumResultsPanel: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: 'var(--color-bg-base)' }}>
       {/* タブヘッダー */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', padding: '0 10px' }}>
+        <button style={tabButtonStyle(activeTab === 'process')} onClick={() => setActiveTab('process')}>
+          <ListTree size={14} /> 計算過程
+        </button>
         <button style={tabButtonStyle(activeTab === 'counts')} onClick={() => setActiveTab('counts')}>
           <BarChart2 size={14} /> Counts
         </button>
@@ -152,6 +178,124 @@ const QuantumResultsPanel: React.FC = () => {
       {/* タブコンテンツ */}
       <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
         
+        {/* Process タブ */}
+        {activeTab === 'process' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {calc_steps && calc_steps.length > 0 ? (
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <h3 style={{ margin: 0, fontSize: '14px', color: 'var(--color-text-primary)' }}>回路の計算過程</h3>
+                  {calc_steps.map((step: any, idx: number) => {
+                    const sv = parseStatevector(step.statevector);
+                    const diracStr = sv.map(s => {
+                      const coeff = formatComplexRoot(s.real, s.imag);
+                      if (coeff === '1') return `|${s.basisStr}⟩`;
+                      if (coeff === '-1') return `- |${s.basisStr}⟩`;
+                      if (coeff === 'i') return `i|${s.basisStr}⟩`;
+                      if (coeff === '-i') return `-i|${s.basisStr}⟩`;
+                      return `(${coeff})|${s.basisStr}⟩`;
+                    }).join(' + ');
+
+                    const gateDesc = (() => {
+                      const isCtrl = step.label.includes('(ctrl)');
+                      if (step.label.includes('→ H')) return '重ね合わせ状態を作る（|0⟩ → |+⟩, |1⟩ → |-⟩）';
+                      if (step.label.includes('→ X') && !step.label.includes('→ CX') && !step.label.includes('→ MCX') && !step.label.includes('→ CCX')) return 'ビット反転（|0⟩ → |1⟩, |1⟩ → |0⟩）';
+                      if (step.label.includes('→ Y')) return 'ビットと位相を反転（|0⟩ → i|1⟩, |1⟩ → -i|0⟩）';
+                      if (step.label.includes('→ Z') && !step.label.includes('→ CZ') && !step.label.includes('→ MCZ') && !step.label.includes('→ CCZ')) return '位相反転（|0⟩ → |0⟩, |1⟩ → - |1⟩）';
+                      if (step.label.includes('→ S')) return 'π/2 位相反転（|0⟩ → |0⟩, |1⟩ → i|1⟩）';
+                      if (step.label.includes('→ T')) return 'π/4 位相反転（|0⟩ → |0⟩, |1⟩ → e^(iπ/4)|1⟩）';
+                      if (step.label.includes('→ CX')) {
+                        if (isCtrl) return '制御X（CNOT）。制御が |1⟩ のとき、標的のビットを反転（例: ctrl=|1⟩, tgt=|0⟩ のとき |10⟩ → |11⟩）';
+                        return 'ビット反転（|0⟩ → |1⟩, |1⟩ → |0⟩）';
+                      }
+                      if (step.label.includes('→ CZ')) {
+                        if (isCtrl) return '制御Z。両方が |1⟩ のとき、状態全体に -1 の位相をかける（|11⟩ → - |11⟩。※位相は特定のビットではなく全体につきます）';
+                        return '位相反転（|0⟩ → |0⟩, |1⟩ → - |1⟩）';
+                      }
+                      if (step.label.includes('→ CCX') || step.label.includes('→ MCX')) return 'トフォリ（制御X）。全ての制御が |1⟩ のとき、標的を反転';
+                      if (step.label.includes('→ CCZ') || step.label.includes('→ MCZ')) return '制御Z。全ての制御が |1⟩ のとき、位相を反転';
+                      return '';
+                    })();
+                    
+                    const formatQubitState = (qs: any) => {
+                      if (typeof qs === 'string') return qs === 'ENTANGLED' ? 'もつれ状態 (Entangled)' : qs;
+                      if (Array.isArray(qs)) {
+                        const parsed = parseStatevector(qs);
+                        return parsed.map(s => {
+                          const coeff = formatComplexRoot(s.real, s.imag);
+                          if (coeff === '1') return `    |${s.basisStr}⟩`;
+                          if (coeff === '-1') return ` -  |${s.basisStr}⟩`;
+                          if (coeff === 'i') return `  i |${s.basisStr}⟩`;
+                          if (coeff === '-i') return ` -i |${s.basisStr}⟩`;
+                          return `(${coeff})|${s.basisStr}⟩`;
+                        }).join(' + ') || '0';
+                      }
+                      return 'Unknown';
+                    };
+
+                    const prev_qubits_state = idx > 0 ? calc_steps[idx - 1].qubits_state : null;
+
+                    return (
+                      <div key={idx} style={{ padding: '12px', backgroundColor: 'var(--color-bg-panel)', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+                        <div style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                          {idx + 1}. {step.label}
+                        </div>
+                        {gateDesc && (
+                          <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>
+                            {gateDesc}
+                          </div>
+                        )}
+                        {step.qubits_state && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px' }}>
+                            {step.qubits_state.map((qs: any, qidx: number) => {
+                              const fQs = formatQubitState(qs);
+                              const fPrevQs = prev_qubits_state ? formatQubitState(prev_qubits_state[qidx]) : null;
+                              return (
+                                <div key={qidx} style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-mono)', whiteSpace: 'pre-wrap' }}>
+                                  {fPrevQs ? `q${qidx}: ${fPrevQs} → ${fQs}` : `q${qidx}: ${fQs}`}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--color-accent-purple)', wordBreak: 'break-all', borderTop: '1px dashed var(--color-border)', paddingTop: '8px' }}>
+                          全体: {diracStr || '0'}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+                  <h3 style={{ margin: 0, fontSize: '14px', color: 'var(--color-text-primary)', borderTop: '1px solid var(--color-border)', paddingTop: '20px' }}>出力結果</h3>
+                  <div style={{ padding: '12px', backgroundColor: 'rgba(168,85,247,0.05)', borderRadius: '6px', border: '1px solid rgba(168,85,247,0.2)' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--color-text-primary)', marginBottom: '10px' }}>
+                      この回路を測定すると、以下の確率で状態が観測されます。
+                    </div>
+                    {filteredStatevector.map(state => (
+                      <div key={state.basisStr} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '4px 0' }}>
+                        <div style={{ width: '60px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--color-accent-purple)' }}>
+                          |{state.basisStr}⟩
+                        </div>
+                        <div style={{ flex: 1, height: '8px', backgroundColor: 'var(--color-bg-panel)', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ width: `${state.probability * 100}%`, height: '100%', backgroundColor: 'var(--color-accent-purple)', borderRadius: '4px' }} />
+                        </div>
+                        <div style={{ width: '50px', textAlign: 'right', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                          {(state.probability * 100).toFixed(1)}%
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginTop: '20px' }}>
+                計算過程のデータがありません。
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Counts タブ */}
         {activeTab === 'counts' && (
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '15px' }}>
