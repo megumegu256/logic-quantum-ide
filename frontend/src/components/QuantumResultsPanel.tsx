@@ -86,10 +86,31 @@ const formatComplexRoot = (real: number, imag: number): string => {
 
 // --- Components ---
 const QuantumResultsPanel: React.FC = () => {
-  const { quantumSimulationResult } = useCircuitStore();
-  const [activeTab, setActiveTab] = useState<Tab>('counts');
+  const { 
+    quantumSimulationResult,
+    quantumHoveredStep,
+    quantumSelectedStep,
+    setQuantumHoveredStep,
+    setQuantumSelectedStep
+  } = useCircuitStore();
+  const [activeTab, setActiveTab] = useState<Tab>('process');
   const [sortMode, setSortMode] = useState<SortMode>('basis');
   const [displayMode, setDisplayMode] = useState<DisplayMode>('rect');
+  
+  const panelRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      if (panelRef.current && panelRef.current.contains(e.target as Node)) return;
+      
+      const canvasEl = document.querySelector('.quantum-canvas-container');
+      if (canvasEl && canvasEl.contains(e.target as Node)) return;
+      
+      setQuantumSelectedStep(null);
+    };
+    window.addEventListener('mousedown', handleGlobalClick);
+    return () => window.removeEventListener('mousedown', handleGlobalClick);
+  }, [setQuantumSelectedStep]);
 
   const { counts, statevector, error, measured_qubits, calc_steps } = quantumSimulationResult || {};
 
@@ -158,7 +179,11 @@ const QuantumResultsPanel: React.FC = () => {
   });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: 'var(--color-bg-base)' }}>
+    <div 
+      ref={panelRef}
+      style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: 'var(--color-bg-base)', borderLeft: '1px solid var(--color-border)' }}
+      onClick={() => setQuantumSelectedStep(null)}
+    >
       {/* タブヘッダー */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', padding: '0 10px' }}>
         <button style={tabButtonStyle(activeTab === 'process')} onClick={() => setActiveTab('process')}>
@@ -235,8 +260,38 @@ const QuantumResultsPanel: React.FC = () => {
 
                     const prev_qubits_state = idx > 0 ? calc_steps[idx - 1].qubits_state : null;
 
+                    const isHovered = quantumHoveredStep?.slot === step.slot && 
+                      (!quantumHoveredStep?.qubits?.length || !step.qubits || quantumHoveredStep?.qubits?.some((q: number) => step.qubits?.includes(q)));
+                    const isSelected = quantumSelectedStep?.slot === step.slot && 
+                      (!quantumSelectedStep?.qubits?.length || !step.qubits || quantumSelectedStep?.qubits?.some((q: number) => step.qubits?.includes(q)));
+                    const bgColor = isSelected ? 'rgba(168,85,247,0.15)' : isHovered ? 'rgba(168,85,247,0.05)' : 'var(--color-bg-panel)';
+                    const borderColor = isSelected ? 'var(--color-accent-purple)' : isHovered ? 'rgba(168,85,247,0.5)' : 'var(--color-border)';
+
                     return (
-                      <div key={idx} style={{ padding: '12px', backgroundColor: 'var(--color-bg-panel)', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+                      <div 
+                        key={idx} 
+                        style={{ 
+                          padding: '12px', 
+                          backgroundColor: bgColor, 
+                          borderRadius: '6px', 
+                          border: `1px solid ${borderColor}`,
+                          cursor: step.slot >= 0 ? 'pointer' : 'default',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={() => {
+                          if (step.slot >= 0) setQuantumHoveredStep({ qubits: step.qubits || [], slot: step.slot, source: 'panel' });
+                        }}
+                        onMouseLeave={() => {
+                          setQuantumHoveredStep(null);
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (step.slot >= 0) {
+                             if (isSelected) setQuantumSelectedStep(null);
+                             else setQuantumSelectedStep({ qubits: step.qubits || [], slot: step.slot, source: 'panel' });
+                          }
+                        }}
+                      >
                         <div style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
                           {idx + 1}. {step.label}
                         </div>
@@ -268,6 +323,21 @@ const QuantumResultsPanel: React.FC = () => {
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
                   <h3 style={{ margin: 0, fontSize: '14px', color: 'var(--color-text-primary)', borderTop: '1px solid var(--color-border)', paddingTop: '20px' }}>出力結果</h3>
+                  
+                  {/* MEASURE Explanation Box */}
+                  <div style={{ padding: '12px', backgroundColor: 'rgba(59,130,246,0.05)', borderRadius: '6px', border: '1px solid rgba(59,130,246,0.2)', fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>
+                    <strong>💡 MEASUREと出力確率の関係性</strong><br/>
+                    {(!measured_qubits || measured_qubits.length === 0) ? (
+                      <>
+                        現在、MEASURE（測定）ゲートは配置されていません。そのため、上記の計算過程で求まった<strong>最終状態ベクトル</strong>の振幅の絶対値の2乗が、そのまま各状態の出力確率（%）として観測されます。
+                      </>
+                    ) : (
+                      <>
+                        現在の回路では、<strong>q{measured_qubits.join(', q')}</strong> が測定されています。測定される直前の全体状態（状態ベクトル）に対して、測定対象の量子ビットが特定の状態（例: 0または1）になる確率を計算した結果が、以下の確率分布になります。未測定のビットは影響を与えず、測定されたビットの確率のみが反映されます。
+                      </>
+                    )}
+                  </div>
+
                   <div style={{ padding: '12px', backgroundColor: 'rgba(168,85,247,0.05)', borderRadius: '6px', border: '1px solid rgba(168,85,247,0.2)' }}>
                     <div style={{ fontSize: '13px', color: 'var(--color-text-primary)', marginBottom: '10px' }}>
                       この回路を測定すると、以下の確率で状態が観測されます。
@@ -317,7 +387,7 @@ const QuantumResultsPanel: React.FC = () => {
                       cursor={{ fill: 'rgba(168,85,247,0.05)' }}
                       contentStyle={{ backgroundColor: 'var(--color-bg-panel)', borderColor: 'var(--color-border)', borderRadius: '6px' }}
                       itemStyle={{ color: 'var(--color-text-primary)' }}
-                      formatter={(value: number) => [`${value} (${((value / totalShots) * 100).toFixed(1)}%)`, 'Count']}
+                      formatter={(value: any) => [`${value} (${((value / totalShots) * 100).toFixed(1)}%)`, 'Count']}
                     />
                     <Bar dataKey="count" fill="var(--color-accent-purple)" radius={[4, 4, 0, 0]} />
                   </BarChart>

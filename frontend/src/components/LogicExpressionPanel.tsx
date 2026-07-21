@@ -38,7 +38,7 @@ const LogicExpressionPanel: React.FC = () => {
       <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {Object.entries(logicExpressions).map(([nodeId, expr]) => {
           const node = nodes.find(n => n.id === nodeId);
-          const label = node?.data.params?.label || node?.data.label || node?.data.gateType || nodeId.slice(0, 8);
+          const label = String(node?.data.params?.label || node?.data.label || node?.data.gateType || nodeId.slice(0, 8));
           return (
             <div key={nodeId} style={{
               backgroundColor: 'var(--color-bg-console)',

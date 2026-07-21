@@ -46,7 +46,7 @@ def run_simulation(circuit_definition: list, shots: int = 1024, num_qubits: int 
                 elif local_svs[t].probabilities()[1] > 0.999:
                     local_svs[c] = local_svs[c].evolve(ZGate())
 
-        def record_step(label):
+        def record_step(label, qubits=[], slot=-1):
             sv = Statevector(current_qc)
             qubits_state = []
             for i in range(safe_num_qubits):
@@ -67,10 +67,12 @@ def run_simulation(circuit_definition: list, shots: int = 1024, num_qubits: int 
             calc_steps.append({
                 'label': label,
                 'statevector': [f"{complex(v):.3f}" for v in sv.data],
-                'qubits_state': qubits_state
+                'qubits_state': qubits_state,
+                'qubits': qubits,
+                'slot': slot
             })
         
-        record_step('初期状態')
+        record_step('初期状態', [], -1)
 
         saved_state = False
         measured_qubits = []
@@ -92,41 +94,41 @@ def run_simulation(circuit_definition: list, shots: int = 1024, num_qubits: int 
             if gate == 'h':
                 qc.h(op['qubit']); current_qc.h(op['qubit'])
                 apply_local_gate(gate, op)
-                record_step(f"q{op['qubit']} → H    (q{op['qubit']}, {slot})")
+                record_step(f"q{op['qubit']} → H    (q{op['qubit']}, {slot})", all_op_qubits, slot - 1)
             elif gate == 'x':
                 qc.x(op['qubit']); current_qc.x(op['qubit'])
                 apply_local_gate(gate, op)
                 display_gate = op.get('original_type', 'X').upper()
-                record_step(f"q{op['qubit']} → {display_gate}    (q{op['qubit']}, {slot})")
+                record_step(f"q{op['qubit']} → {display_gate}    (q{op['qubit']}, {slot})", all_op_qubits, slot - 1)
             elif gate == 'y':
                 qc.y(op['qubit']); current_qc.y(op['qubit'])
                 apply_local_gate(gate, op)
-                record_step(f"q{op['qubit']} → Y    (q{op['qubit']}, {slot})")
+                record_step(f"q{op['qubit']} → Y    (q{op['qubit']}, {slot})", all_op_qubits, slot - 1)
             elif gate == 'z':
                 qc.z(op['qubit']); current_qc.z(op['qubit'])
                 apply_local_gate(gate, op)
                 display_gate = op.get('original_type', 'Z').upper()
-                record_step(f"q{op['qubit']} → {display_gate}    (q{op['qubit']}, {slot})")
+                record_step(f"q{op['qubit']} → {display_gate}    (q{op['qubit']}, {slot})", all_op_qubits, slot - 1)
             elif gate == 's':
                 qc.s(op['qubit']); current_qc.s(op['qubit'])
                 apply_local_gate(gate, op)
-                record_step(f"q{op['qubit']} → S    (q{op['qubit']}, {slot})")
+                record_step(f"q{op['qubit']} → S    (q{op['qubit']}, {slot})", all_op_qubits, slot - 1)
             elif gate == 't':
                 qc.t(op['qubit']); current_qc.t(op['qubit'])
                 apply_local_gate(gate, op)
-                record_step(f"q{op['qubit']} → T    (q{op['qubit']}, {slot})")
+                record_step(f"q{op['qubit']} → T    (q{op['qubit']}, {slot})", all_op_qubits, slot - 1)
             elif gate == 'cx':
                 qc.cx(op['qubits'][0], op['qubits'][1]); current_qc.cx(op['qubits'][0], op['qubits'][1])
                 apply_local_gate(gate, op)
-                record_step(f"q{op['qubits'][0]} (ctrl), q{op['qubits'][1]} (tgt) → CX    (ctrl: q{op['qubits'][0]}, tgt: q{op['qubits'][1]}, {slot})")
+                record_step(f"q{op['qubits'][0]} (ctrl), q{op['qubits'][1]} (tgt) → CX    (ctrl: q{op['qubits'][0]}, tgt: q{op['qubits'][1]}, {slot})", all_op_qubits, slot - 1)
             elif gate == 'cz':
                 qc.cz(op['qubits'][0], op['qubits'][1]); current_qc.cz(op['qubits'][0], op['qubits'][1])
                 apply_local_gate(gate, op)
-                record_step(f"q{op['qubits'][0]} (ctrl), q{op['qubits'][1]} (tgt) → CZ    (ctrl: q{op['qubits'][0]}, tgt: q{op['qubits'][1]}, {slot})")
+                record_step(f"q{op['qubits'][0]} (ctrl), q{op['qubits'][1]} (tgt) → CZ    (ctrl: q{op['qubits'][0]}, tgt: q{op['qubits'][1]}, {slot})", all_op_qubits, slot - 1)
             elif gate == 'ccx':
                 qc.ccx(op['qubits'][0], op['qubits'][1], op['qubits'][2])
                 current_qc.ccx(op['qubits'][0], op['qubits'][1], op['qubits'][2])
-                record_step(f"q{op['qubits'][0]}, q{op['qubits'][1]} (ctrl), q{op['qubits'][2]} (tgt) → CCX    (ctrls: q{op['qubits'][0]}, q{op['qubits'][1]}, tgt: q{op['qubits'][2]}, {slot})")
+                record_step(f"q{op['qubits'][0]}, q{op['qubits'][1]} (ctrl), q{op['qubits'][2]} (tgt) → CCX    (ctrls: q{op['qubits'][0]}, q{op['qubits'][1]}, tgt: q{op['qubits'][2]}, {slot})", all_op_qubits, slot - 1)
             elif gate == 'ccz':
                 qc.h(op['qubits'][2])
                 qc.ccx(op['qubits'][0], op['qubits'][1], op['qubits'][2])
@@ -134,12 +136,12 @@ def run_simulation(circuit_definition: list, shots: int = 1024, num_qubits: int 
                 current_qc.h(op['qubits'][2])
                 current_qc.ccx(op['qubits'][0], op['qubits'][1], op['qubits'][2])
                 current_qc.h(op['qubits'][2])
-                record_step(f"q{op['qubits'][0]}, q{op['qubits'][1]} (ctrl), q{op['qubits'][2]} (tgt) → CCZ    (ctrls: q{op['qubits'][0]}, q{op['qubits'][1]}, tgt: q{op['qubits'][2]}, {slot})")
+                record_step(f"q{op['qubits'][0]}, q{op['qubits'][1]} (ctrl), q{op['qubits'][2]} (tgt) → CCZ    (ctrls: q{op['qubits'][0]}, q{op['qubits'][1]}, tgt: q{op['qubits'][2]}, {slot})", all_op_qubits, slot - 1)
             elif gate == 'mcx':
                 qc.mcx(op['controls'], op['target'])
                 current_qc.mcx(op['controls'], op['target'])
                 ctrl_str = ', '.join([f"q{c}" for c in op['controls']])
-                record_step(f"{ctrl_str} (ctrl), q{op['target']} (tgt) → MCX    (ctrls: {ctrl_str}, tgt: q{op['target']}, {slot})")
+                record_step(f"{ctrl_str} (ctrl), q{op['target']} (tgt) → MCX    (ctrls: {ctrl_str}, tgt: q{op['target']}, {slot})", all_op_qubits, slot - 1)
             elif gate == 'mcz':
                 qc.h(op['target'])
                 qc.mcx(op['controls'], op['target'])
@@ -148,7 +150,7 @@ def run_simulation(circuit_definition: list, shots: int = 1024, num_qubits: int 
                 current_qc.mcx(op['controls'], op['target'])
                 current_qc.h(op['target'])
                 ctrl_str = ', '.join([f"q{c}" for c in op['controls']])
-                record_step(f"{ctrl_str} (ctrl), q{op['target']} (tgt) → MCZ    (ctrls: {ctrl_str}, tgt: q{op['target']}, {slot})")
+                record_step(f"{ctrl_str} (ctrl), q{op['target']} (tgt) → MCZ    (ctrls: {ctrl_str}, tgt: q{op['target']}, {slot})", all_op_qubits, slot - 1)
             elif gate == 'measure':
                 qc.measure(op['qubit'], op['qubit']) 
                 measure_explicitly_added = True

@@ -1,7 +1,7 @@
 // TimingChart.tsx
 // Quantum IDE — SVGタイミングチャート + dnd-kitによる行並び替え
 
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Play, Trash2, Loader2, SkipForward, RotateCcw, Pause } from 'lucide-react';
 import useCircuitStore from '../store/useCircuitStore';
 import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
@@ -154,21 +154,14 @@ const ControlBar: React.FC<{
 // ============================================================
 // ソート可能な行コンポーネント (dnd-kit)
 // ============================================================
-const SortableChartRow = ({ 
-  nodeId, 
-  history, 
-  svgWidth, 
-  gridXs, 
-  labelMap, 
-  gateTypeMap 
-}: { 
+const SortableChartRow: React.FC<{ 
   nodeId: string, 
   history: number[], 
   svgWidth: number, 
   gridXs: number[], 
   labelMap: Record<string, string>, 
   gateTypeMap: Record<string, string> 
-}) => {
+}> = ({ nodeId, history, svgWidth, gridXs, labelMap, gateTypeMap }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: nodeId });
   
   const QUANTUM_GATES = new Set(['H','X','Y','Z','S','T','CX','CCX','Measure']);
@@ -186,7 +179,7 @@ const SortableChartRow = ({
 
   const renderBus = () => {
     if (history.length === 0 || !isBus) return null;
-    const elements = [];
+    const elements: React.ReactNode[] = [];
     let currentVal = history[0];
     let startIdx = 0;
 

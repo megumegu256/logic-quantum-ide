@@ -17,7 +17,7 @@ import {
   GitMerge, Layers, FlipHorizontal, ShieldOff, Shuffle,
   ToggleLeft, ToggleRight, Lightbulb, Clock, Hash,
   Atom, RefreshCw, RefreshCcw, Zap, Timer, Sigma,
-  Link, Link2, Gauge,
+  Link, Link2, Gauge, Circle,
   CheckCircle2, XCircle,
 } from 'lucide-react';
 
@@ -57,7 +57,9 @@ const GATE_CONFIG: Record<GateType, GateConfig> = {
   S:        { icon: <Sigma      size={ICON}/>, label:'S',      borderColor:'#9333ea', bgColor:'rgba(147,51,234,0.12)', textColor:'#c084fc', glowColor:'rgba(147,51,234,0.30)',  category:'quantum' },
   T:        { icon: <Timer      size={ICON}/>, label:'T',      borderColor:'#c026d3', bgColor:'rgba(192,38,211,0.12)', textColor:'#e879f9', glowColor:'rgba(192,38,211,0.30)',  category:'quantum' },
   CX:       { icon: <Link       size={ICON}/>, label:'CX',     borderColor:'#7c3aed', bgColor:'rgba(124,58,237,0.12)', textColor:'#a78bfa', glowColor:'rgba(124,58,237,0.30)',  category:'quantum' },
+  CZ:       { icon: <Link2      size={ICON}/>, label:'CZ',     borderColor:'#7c3aed', bgColor:'rgba(124,58,237,0.12)', textColor:'#a78bfa', glowColor:'rgba(124,58,237,0.30)',  category:'quantum' },
   CCX:      { icon: <Link2      size={ICON}/>, label:'CCX',    borderColor:'#6d28d9', bgColor:'rgba(109,40,217,0.12)', textColor:'#8b5cf6', glowColor:'rgba(109,40,217,0.30)',  category:'quantum' },
+  CTRL:     { icon: <Circle fill="currentColor" size={ICON}/>, label:'CTRL',   borderColor:'#6d28d9', bgColor:'rgba(109,40,217,0.12)', textColor:'#8b5cf6', glowColor:'rgba(109,40,217,0.30)',  category:'quantum' },
   Measure:  { icon: <Gauge      size={ICON}/>, label:'M',      borderColor:'#db2777', bgColor:'rgba(219,39,119,0.12)', textColor:'#f472b6', glowColor:'rgba(219,39,119,0.30)',  category:'quantum' },
   CustomIC: { icon: <Layers     size={ICON}/>, label:'IC',     borderColor:'#10b981', bgColor:'rgba(16,185,129,0.10)', textColor:'#34d399', glowColor:'rgba(16,185,129,0.25)',  category:'logic'   },
   Junction: { icon: <div style={{width:'10px',height:'10px',borderRadius:'50%',backgroundColor:'#60a5fa',display:'inline-block'}}/>, label:'JNC', borderColor:'#60a5fa', bgColor:'rgba(96,165,250,0.12)', textColor:'#93c5fd', glowColor:'rgba(96,165,250,0.4)', category:'logic' },

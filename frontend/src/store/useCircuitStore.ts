@@ -27,7 +27,7 @@ export type AppMode = 'logic' | 'quantum';
 export type GateType =
   | 'AND' | 'OR' | 'NOT' | 'NAND' | 'NOR' | 'XOR'
   | 'Switch' | 'LED' | 'Clock' | 'SevenSeg'
-  | 'H' | 'X' | 'Y' | 'Z' | 'S' | 'T' | 'CX' | 'CCX' | 'Measure'
+  | 'H' | 'X' | 'Y' | 'Z' | 'S' | 'T' | 'CX' | 'CZ' | 'CCX' | 'CTRL' | 'Measure'
   | 'Junction' | 'CustomIC';
 
 export interface GateNodeData {
@@ -117,6 +117,11 @@ interface CircuitState {
   undoQuantum: () => void;
   redoQuantum: () => void;
 
+  quantumHoveredStep: { qubits: number[], slot: number, source?: 'panel' | 'canvas' } | null;
+  quantumSelectedStep: { qubits: number[], slot: number, source?: 'panel' | 'canvas' } | null;
+  setQuantumHoveredStep: (step: { qubits: number[], slot: number, source?: 'panel' | 'canvas' } | null) => void;
+  setQuantumSelectedStep: (step: { qubits: number[], slot: number, source?: 'panel' | 'canvas' } | null) => void;
+
   onNodesChange:  (changes: NodeChange[]) => void;
   onEdgesChange:  (changes: EdgeChange[]) => void;
   onConnect:      (connection: Connection) => void;
@@ -198,6 +203,11 @@ const useCircuitStore = create<CircuitState>((set, get) => ({
 
   quantumPast:       [],
   quantumFuture:     [],
+  quantumHoveredStep: null,
+  quantumSelectedStep: null,
+
+  setQuantumHoveredStep: (step) => set({ quantumHoveredStep: step }),
+  setQuantumSelectedStep: (step) => set({ quantumSelectedStep: step }),
 
   pushQuantumHistory: () => {
     set((state) => {

@@ -12,8 +12,8 @@ import {
   GitMerge, Layers, FlipHorizontal, ShieldOff, Shuffle,
   ToggleLeft, Lightbulb, Clock, Hash,
   Atom, RefreshCw, RefreshCcw, Zap, Timer, Sigma,
-  Link, Link2, Gauge,
-  ChevronDown, ChevronRight, GitBranch, Circle, Target,
+  Gauge,
+  ChevronDown, ChevronRight, GitBranch, Circle,
 } from 'lucide-react';
 import useCircuitStore, { type GateType } from '../store/useCircuitStore';
 
@@ -230,26 +230,7 @@ export const QUANTUM_GATES: GateMeta[] = [
     bgColor: 'rgba(192,38,211,0.12)',
     textColor: '#e879f9',
   },
-  {
-    gateType: 'CX_TARGET',
-    label: 'Target (X)',
-    description: 'CXターゲット (十字白丸)',
-    icon: <Target size={ICON_SIZE} />,
-    handles: { inputs: 1, outputs: 1 },
-    borderColor: '#7c3aed',
-    bgColor: 'rgba(124,58,237,0.12)',
-    textColor: '#a78bfa',
-  },
-  {
-    gateType: 'CZ_TARGET',
-    label: 'Target (Z)',
-    description: 'CZターゲット',
-    icon: <Circle size={ICON_SIZE} />,
-    handles: { inputs: 1, outputs: 1 },
-    borderColor: '#7c3aed',
-    bgColor: 'rgba(124,58,237,0.12)',
-    textColor: '#a78bfa',
-  },
+
   {
     gateType: 'CTRL',
     label: 'Control',
@@ -282,7 +263,7 @@ const GateItem: React.FC<{ gate: GateMeta; inputOverride?: number }> = ({ gate, 
   const handleDragStart = (e: React.DragEvent) => {
     const data: DragTransferData = {
       gateType: gate.gateType,
-      label: gate.label,
+      label: String(gate.label),
       handles: {
         inputs:  inputOverride ?? gate.handles.inputs,
         outputs: gate.handles.outputs,

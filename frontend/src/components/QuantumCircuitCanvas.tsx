@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import useCircuitStore, { type QuantumGate } from '../store/useCircuitStore';
 import { QUANTUM_GATES } from './GatePalette';
 
@@ -6,7 +6,9 @@ const QuantumCircuitCanvas: React.FC = () => {
   const { 
     quantumGrid, quantumNumQubits, quantumNumSlots, 
     setQuantumGrid, setQuantumNumQubits,
-    pushQuantumHistory, undoQuantum, redoQuantum
+    pushQuantumHistory, undoQuantum, redoQuantum,
+    quantumHoveredStep, quantumSelectedStep,
+    setQuantumHoveredStep, setQuantumSelectedStep
   } = useCircuitStore();
 
   const [dragOverCell, setDragOverCell] = useState<{ q: number; s: number } | null>(null);
@@ -212,13 +214,7 @@ const QuantumCircuitCanvas: React.FC = () => {
         }
       }
       if (spanningPairId) {
-        if (g.type === 'Z' || g.type === 'CZ') {
-          g.type = 'CZ'; g.role = 'target'; g.pairId = spanningPairId;
-        } else if (g.type === 'X' || g.type === 'CX') {
-          g.type = 'CX'; g.role = 'target'; g.pairId = spanningPairId;
-        } else if (g.role) {
-          g.pairId = spanningPairId;
-        }
+        g.pairId = spanningPairId;
       }
     };
 
@@ -228,13 +224,10 @@ const QuantumCircuitCanvas: React.FC = () => {
       const gateType = e.dataTransfer.getData('gateType').toUpperCase();
       const newGrid = [...quantumGrid.map(row => [...row])];
       
-      if (gateType === 'CX_TARGET' || gateType === 'CZ_TARGET') {
-        const typeStr = gateType === 'CX_TARGET' ? 'CX' : 'CZ';
-        newGrid[qIndex][sIndex] = { type: typeStr, id: Date.now(), role: 'target', pairId: Date.now() };
-      } else if (gateType === 'CTRL') {
+      if (gateType === 'CTRL') {
         newGrid[qIndex][sIndex] = { type: 'CTRL', id: Date.now(), role: 'control', pairId: Date.now() };
       } else {
-        newGrid[qIndex][sIndex] = { type: gateType, id: Date.now() };
+        newGrid[qIndex][sIndex] = { type: gateType, id: Date.now(), pairId: Date.now() };
       }
       
       applyWireStraddle(newGrid, qIndex, sIndex);
@@ -246,34 +239,38 @@ const QuantumCircuitCanvas: React.FC = () => {
         const srcGate = quantumGrid[srcQ][srcS];
         const tgtGate = quantumGrid[qIndex][sIndex];
         if (srcGate && tgtGate) {
+          // CTRLが含まれないワイヤー接続（XとZなど）は標準的な量子回路では発生しないためブロック
+          if (srcGate.type !== 'CTRL' && tgtGate.type !== 'CTRL') {
+            return;
+          }
+          
           pushQuantumHistory();
           const newGrid = [...quantumGrid.map(row => [...row])];
-          const srcPairId = srcGate.pairId;
-          const tgtPairId = tgtGate.pairId;
+          const srcPairId = srcGate.pairId || Date.now();
+          const tgtPairId = tgtGate.pairId || srcPairId;
           
-          if (srcPairId && tgtPairId) {
-            const minQ = Math.min(srcQ, qIndex);
-            const maxQ = Math.max(srcQ, qIndex);
-            
-            const pairIdsToMerge = new Set<number>([tgtPairId]);
-            for (let q = minQ + 1; q < maxQ; q++) {
-               const g = newGrid[q][sIndex];
-               if (g && (g.role || g.type === 'Z' || g.type === 'X' || g.type === 'CZ' || g.type === 'CX')) {
-                  if (g.type === 'Z' || g.type === 'CZ') { g.type = 'CZ'; g.role = 'target'; }
-                  if (g.type === 'X' || g.type === 'CX') { g.type = 'CX'; g.role = 'target'; }
-                  if (g.pairId) pairIdsToMerge.add(g.pairId);
-                  g.pairId = srcPairId;
-               }
-            }
+          const minQ = Math.min(srcQ, qIndex);
+          const maxQ = Math.max(srcQ, qIndex);
+          
+          const pairIdsToMerge = new Set<number>([tgtPairId, srcPairId]);
+          srcGate.pairId = srcPairId;
+          tgtGate.pairId = srcPairId;
 
-            for (let q = 0; q < newGrid.length; q++) {
-              const g = newGrid[q][sIndex];
-              if (g && g.pairId && pairIdsToMerge.has(g.pairId)) {
-                newGrid[q][sIndex] = { ...g, pairId: srcPairId };
-              }
-            }
-            setQuantumGrid(newGrid);
+          for (let q = minQ + 1; q < maxQ; q++) {
+             const g = newGrid[q][sIndex];
+             if (g) {
+                if (g.pairId) pairIdsToMerge.add(g.pairId);
+                g.pairId = srcPairId;
+             }
           }
+
+          for (let q = 0; q < newGrid.length; q++) {
+            const g = newGrid[q][sIndex];
+            if (g && g.pairId && pairIdsToMerge.has(g.pairId)) {
+              newGrid[q][sIndex] = { ...g, pairId: srcPairId };
+            }
+          }
+          setQuantumGrid(newGrid);
         }
       }
     } else if (mode === 'move') {
@@ -400,15 +397,26 @@ const QuantumCircuitCanvas: React.FC = () => {
     setQuantumGrid(newGrid);
   };
 
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      if (canvasRef.current && canvasRef.current.contains(e.target as Node)) return;
+      setSelectedCells([]);
+    };
+    window.addEventListener('mousedown', handleGlobalClick);
+    return () => window.removeEventListener('mousedown', handleGlobalClick);
+  }, []);
+
   return (
     <div 
       ref={canvasRef}
+      className="quantum-canvas-container"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
-      onClick={(e) => {
+      onClick={() => {
         setSelectedCells([]);
+        setQuantumSelectedStep(null);
       }}
       style={{
         width: '100%', height: '100%',
@@ -495,22 +503,58 @@ const QuantumCircuitCanvas: React.FC = () => {
                 const textColor = gateMeta ? gateMeta.textColor : '#e879f9';
                 const hoverBgColor = gateMeta ? gateMeta.bgColor.replace(/0\.\d+\)/, '0.25)') : 'rgba(168,85,247,0.25)';
                 const isSelected = selectedCells.some(c => c.q === qIndex && c.s === sIndex);
+                
+                const isProcessHovered = quantumHoveredStep?.source === 'panel' && quantumHoveredStep?.slot === sIndex && quantumHoveredStep?.qubits.includes(qIndex);
+                const isProcessSelected = quantumSelectedStep?.slot === sIndex && quantumSelectedStep?.qubits.includes(qIndex);
+                
+                const cellBorderColor = isSelected ? '#3b82f6' : isProcessSelected ? '#a855f7' : isProcessHovered ? 'rgba(168,85,247,0.6)' : (dragOverCell?.q === qIndex && dragOverCell?.s === sIndex ? '#a855f7' : 'transparent');
+                const cellBorderStyle = (isSelected || isProcessSelected || isProcessHovered) ? 'solid' : 'dashed';
+                const cellBorderWidth = '2px';
+                
+                const cellBoxShadow = dragOverCell?.q === qIndex && dragOverCell?.s === sIndex
+                  ? 'inset 0 0 12px rgba(168,85,247,0.5)' 
+                  : isSelected ? '0 0 12px rgba(59,130,246,0.5)'
+                  : isProcessSelected ? '0 0 12px rgba(168,85,247,0.5)'
+                  : isProcessHovered ? '0 0 12px rgba(168,85,247,0.4)'
+                  : 'none';
+                  
+                const cellBgColor = dragOverCell?.q === qIndex && dragOverCell?.s === sIndex
+                  ? 'rgba(168,85,247,0.2)' 
+                  : isProcessSelected ? 'rgba(168,85,247,0.15)'
+                  : isProcessHovered ? 'rgba(168,85,247,0.2)'
+                  : 'transparent';
 
                 return (
+                  <div key={`${qIndex}-${sIndex}`} style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: 0, right: 0, top: '50%', height: '2px', backgroundColor: 'var(--color-border)', zIndex: 0, pointerEvents: 'none' }} />
                   <div
-                    key={sIndex}
                     onClick={(e) => {
                       e.stopPropagation();
                       if (e.shiftKey || e.ctrlKey || e.metaKey) {
                         const isSelected = selectedCells.some(c => c.q === qIndex && c.s === sIndex);
                         if (isSelected) {
                           setSelectedCells(selectedCells.filter(c => c.q !== qIndex || c.s !== sIndex));
+                          setQuantumSelectedStep(null);
                         } else {
                           setSelectedCells([...selectedCells, { q: qIndex, s: sIndex }]);
+                          if (quantumGrid[qIndex][sIndex]) {
+                            setQuantumSelectedStep({ qubits: [qIndex], slot: sIndex, source: 'canvas' });
+                          }
                         }
                       } else {
                         setSelectedCells([{ q: qIndex, s: sIndex }]);
+                        if (quantumGrid[qIndex][sIndex]) {
+                          setQuantumSelectedStep({ qubits: [qIndex], slot: sIndex, source: 'canvas' });
+                        }
                       }
+                    }}
+                    onMouseEnter={() => {
+                       if (quantumGrid[qIndex][sIndex]) {
+                          setQuantumHoveredStep({ qubits: [qIndex], slot: sIndex, source: 'canvas' });
+                       }
+                    }}
+                    onMouseLeave={() => {
+                       setQuantumHoveredStep(null);
                     }}
                     onDragOver={(e) => handleDragOver(e, qIndex, sIndex)}
                     onDragLeave={handleDragLeave}
@@ -519,89 +563,113 @@ const QuantumCircuitCanvas: React.FC = () => {
                       width: '64px', height: '64px',
                       position: 'relative', zIndex: 1,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      backgroundColor: dragOverCell?.q === qIndex && dragOverCell?.s === sIndex
-                        ? 'rgba(168,85,247,0.2)' : 'transparent',
+                      backgroundColor: cellBgColor,
                       borderRadius: '10px',
-                      border: dragOverCell?.q === qIndex && dragOverCell?.s === sIndex
-                        ? '2px dashed #a855f7' : (isSelected ? '2px solid #3b82f6' : '2px dashed transparent'),
-                      boxShadow: dragOverCell?.q === qIndex && dragOverCell?.s === sIndex
-                        ? 'inset 0 0 12px rgba(168,85,247,0.5)' : (isSelected ? '0 0 12px rgba(59,130,246,0.5)' : 'none'),
+                      border: `${cellBorderWidth} ${cellBorderStyle} ${cellBorderColor}`,
+                      boxShadow: cellBoxShadow,
                       transition: 'all 0.15s ease',
                       margin: '0 4px',
                       cursor: 'pointer'
                     }}
                   >
-                  {cell && (
-                    <div
-                      draggable
-                      onDragStart={(e) => handleGateDragStart(e, qIndex, sIndex)}
-                      onDragEnd={handleGateDragEnd}
-                      style={{
-                        width: '46px', height: '46px',
-                        backgroundColor: cell.role ? 'transparent' : bgColor,
-                        border: cell.role ? 'none' : `2px solid ${borderColor}`,
-                        borderRadius: '10px',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: textColor, fontWeight: 700, fontSize: '18px',
-                        fontFamily: 'var(--font-mono)', letterSpacing: '0.05em',
-                        cursor: 'grab', backdropFilter: cell.role ? 'none' : 'blur(4px)',
-                        boxShadow: cell.role ? 'none' : `0 0 12px ${bgColor.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/, 'rgba($1,$2,$3,0.4)')}`,
-                        position: 'relative', transition: 'all 0.15s ease',
-                        opacity: draggingGate?.q === qIndex && draggingGate?.s === sIndex ? 0.3 : 1
-                      }}
-                      onMouseEnter={(e) => {
-                        if (draggingGate) return;
-                        const el = e.currentTarget as HTMLElement;
-                        if (cell.role) {
-                          el.style.backgroundColor = 'rgba(168,85,247,0.1)';
-                        } else {
-                          el.style.backgroundColor = hoverBgColor;
-                          el.style.boxShadow = `0 0 0 2px ${borderColor}, 0 0 20px ${bgColor.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/, 'rgba($1,$2,$3,0.6)')}`;
-                        }
-                        const btn = el.querySelector('.delete-btn') as HTMLElement;
-                        if (btn) btn.style.opacity = '1';
-                      }}
-                      onMouseLeave={(e) => {
-                        const el = e.currentTarget as HTMLElement;
-                        if (cell.role) {
-                          el.style.backgroundColor = 'transparent';
-                        } else {
-                          el.style.backgroundColor = bgColor;
-                          el.style.boxShadow = `0 0 12px ${bgColor.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/, 'rgba($1,$2,$3,0.4)')}`;
-                        }
-                        const btn = el.querySelector('.delete-btn') as HTMLElement;
-                        if (btn) btn.style.opacity = '0';
-                        const handles = el.querySelectorAll('.connect-handle') as NodeListOf<HTMLElement>;
-                        handles.forEach(h => h.style.opacity = '0');
-                      }}
-                    >
-                      {cell.role === 'control' || (cell.role === 'target' && cell.type === 'CZ') ? (
-                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', backgroundColor: borderColor, zIndex: 10 }} />
-                      ) : cell.role === 'target' && cell.type === 'CX' ? (
-                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: `2px solid ${borderColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', backgroundColor: 'var(--color-bg-base)', zIndex: 10 }}>
-                          <div style={{ position: 'absolute', width: '100%', height: '2px', backgroundColor: borderColor }} />
-                          <div style={{ position: 'absolute', width: '2px', height: '100%', backgroundColor: borderColor }} />
-                        </div>
-                      ) : (
-                        cell.type
-                      )}
+                  {cell && (() => {
+                     const pairedCells = quantumGrid.map(r => r[sIndex]).filter(c => c && c.pairId === cell.pairId);
+                     const hasControl = pairedCells.some(c => c && c.type === 'CTRL');
+                     const isControl = cell.type === 'CTRL';
+                     const isZTarget = cell.type === 'Z' && hasControl;
+                     const isXTarget = cell.type === 'X' && hasControl;
+                     const isConnectedNode = isControl || isZTarget || isXTarget;
+                     const canConnect = ['X', 'Z', 'CTRL'].includes(cell.type);
+
+                     return (
+                      <div
+                        draggable
+                        onDragStart={(e) => handleGateDragStart(e, qIndex, sIndex)}
+                        onDragEnd={handleGateDragEnd}
+                        style={{
+                          width: '46px', height: '46px',
+                          backgroundColor: isConnectedNode ? 'transparent' : bgColor,
+                          border: isConnectedNode ? 'none' : `2px solid ${borderColor}`,
+                          borderRadius: '10px',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: textColor, fontWeight: 700, fontSize: '18px',
+                          fontFamily: 'var(--font-mono)', letterSpacing: '0.05em',
+                          cursor: 'grab', backdropFilter: isConnectedNode ? 'none' : 'blur(4px)',
+                          boxShadow: isConnectedNode ? 'none' : `0 0 12px ${bgColor.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/, 'rgba($1,$2,$3,0.4)')}`,
+                          position: 'relative', transition: 'all 0.15s ease',
+                          opacity: draggingGate?.q === qIndex && draggingGate?.s === sIndex ? 0.3 : 1
+                        }}
+                        onMouseEnter={(e) => {
+                          if (draggingGate) return;
+                          const el = e.currentTarget as HTMLElement;
+                          if (isConnectedNode) {
+                            el.style.backgroundColor = 'rgba(168,85,247,0.1)';
+                          } else {
+                            el.style.backgroundColor = hoverBgColor;
+                            el.style.boxShadow = `0 0 0 2px ${borderColor}, 0 0 20px ${bgColor.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/, 'rgba($1,$2,$3,0.6)')}`;
+                          }
+                          const btn = el.querySelector('.delete-btn') as HTMLElement;
+                          if (btn) btn.style.opacity = '1';
+                        }}
+                        onMouseLeave={(e) => {
+                          const el = e.currentTarget as HTMLElement;
+                          if (isConnectedNode) {
+                            el.style.backgroundColor = 'transparent';
+                          } else {
+                            el.style.backgroundColor = bgColor;
+                            el.style.boxShadow = `0 0 12px ${bgColor.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/, 'rgba($1,$2,$3,0.4)')}`;
+                          }
+                          const btn = el.querySelector('.delete-btn') as HTMLElement;
+                          if (btn) btn.style.opacity = '0';
+                          const handles = el.querySelectorAll('.connect-handle') as NodeListOf<HTMLElement>;
+                          handles.forEach(h => h.style.opacity = '0');
+                        }}
+                      >
+                        {isControl || isZTarget ? (
+                           <div style={{ width: '16px', height: '16px', borderRadius: '50%', backgroundColor: borderColor, zIndex: 10 }} />
+                        ) : isXTarget ? (
+                           <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: `2px solid ${borderColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', backgroundColor: 'var(--color-bg-base)', zIndex: 10 }}>
+                              <div style={{ position: 'absolute', width: '100%', height: '2px', backgroundColor: borderColor }} />
+                              <div style={{ position: 'absolute', width: '2px', height: '100%', backgroundColor: borderColor }} />
+                           </div>
+                        ) : (
+                           cell.type
+                        )}
 
                       {cell.pairId && (() => {
                         const pairedQIndices = quantumGrid
                           .map((r, q) => (r[sIndex] && r[sIndex]?.pairId === cell.pairId ? q : -1))
-                          .filter(q => q !== -1);
-                        if (pairedQIndices.length > 1 && Math.min(...pairedQIndices) === qIndex) {
-                           const maxQ = Math.max(...pairedQIndices);
-                           const height = (maxQ - qIndex) * 88;
+                          .filter(q => q !== -1)
+                          .sort((a, b) => a - b);
+                        
+                        const currentIndex = pairedQIndices.indexOf(qIndex);
+                        if (currentIndex >= 0 && currentIndex < pairedQIndices.length - 1) {
+                           const nextQ = pairedQIndices[currentIndex + 1];
+                           
+                           const topCell = quantumGrid[qIndex][sIndex]!;
+                           const hasControl = pairedQIndices.some(q => quantumGrid[q][sIndex]?.type === 'CTRL');
+                           const isTopDot = topCell.type === 'CTRL' || (topCell.type === 'Z' && hasControl);
+                           const isTopCross = topCell.type === 'X' && hasControl;
+                           const r1 = isTopDot ? 8 : (isTopCross ? 16 : 23);
+
+                           const bottomCell = quantumGrid[nextQ][sIndex]!;
+                           const isBottomDot = bottomCell.type === 'CTRL' || (bottomCell.type === 'Z' && hasControl);
+                           const isBottomCross = bottomCell.type === 'X' && hasControl;
+                           const r2 = isBottomDot ? 8 : (isBottomCross ? 16 : 23);
+
+                           const startY = 23 + r1;
+                           const distance = (nextQ - qIndex) * 88;
+                           const height = distance - r1 - r2;
+
                            return (
-                             <div style={{ position: 'absolute', left: '50%', top: `23px`, width: '2px', height: `${height}px`, backgroundColor: borderColor, zIndex: 0, transform: 'translateX(-50%)' }} />
+                             <div style={{ position: 'absolute', left: '50%', top: `${startY}px`, width: '2px', height: `${height}px`, backgroundColor: borderColor, zIndex: 0, transform: 'translateX(-50%)' }} />
                            );
                         }
                         return null;
                       })()}
 
                     {/* 接続用ハンドル (上) */}
-                    {cell.role && (
+                    {canConnect && (
                       <div
                         draggable
                         className="connect-handle"
@@ -620,7 +688,7 @@ const QuantumCircuitCanvas: React.FC = () => {
                       />
                     )}
                     {/* 接続用ハンドル (下) */}
-                    {cell.role && (
+                    {canConnect && (
                       <div
                         draggable
                         className="connect-handle"
@@ -661,7 +729,8 @@ const QuantumCircuitCanvas: React.FC = () => {
                       ×
                     </div>
                   </div>
-                )}
+                  );})()}
+                </div>
               </div>
             );
           })}
