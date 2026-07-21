@@ -1,0 +1,199 @@
+{
+  "type": "quantum_ide_project",
+  "mode": "quantum",
+  "quantumData": {
+    "grid": [
+      [
+        {
+          "type": "H",
+          "id": 1784601670194
+        },
+        {
+          "type": "CTRL",
+          "id": 1784601672057,
+          "role": "control",
+          "pairId": 700
+        },
+        {
+          "type": "CTRL",
+          "id": 1784601667472,
+          "role": "control",
+          "pairId": 701
+        },
+        {
+          "type": "Measure",
+          "id": 1784601671673
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        {
+          "type": "H",
+          "id": 1784601672854
+        },
+        {
+          "type": "CTRL",
+          "id": 1784601675150,
+          "role": "control",
+          "pairId": 700
+        },
+        {
+          "type": "CTRL",
+          "id": 1784601675273,
+          "role": "control",
+          "pairId": 701
+        },
+        {
+          "type": "Measure",
+          "id": 1784601669427
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        {
+          "type": "H",
+          "id": 1784601674175
+        },
+        {
+          "type": "CTRL",
+          "id": 1784601671348,
+          "role": "control",
+          "pairId": 700
+        },
+        {
+          "type": "CTRL",
+          "id": 1784601669919,
+          "role": "control",
+          "pairId": 701
+        },
+        {
+          "type": "Measure",
+          "id": 1784601670903
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        {
+          "type": "X",
+          "id": 1784601674988,
+          "role": "target",
+          "pairId": 700
+        },
+        {
+          "type": "Z",
+          "id": 1784601669526,
+          "role": "target",
+          "pairId": 701
+        },
+        {
+          "type": "Measure",
+          "id": 1784601671190
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    ],
+    "numQubits": 4,
+    "numSlots": 30
+  }
+}

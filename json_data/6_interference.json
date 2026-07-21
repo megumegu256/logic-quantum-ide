@@ -1,0 +1,150 @@
+{
+  "type": "quantum_ide_project",
+  "mode": "quantum",
+  "quantumData": {
+    "grid": [
+      [
+        {
+          "type": "H",
+          "id": 1784601670803
+        },
+        {
+          "type": "CTRL",
+          "id": 1784601676168,
+          "role": "control",
+          "pairId": 600
+        },
+        null,
+        null,
+        null,
+        {
+          "type": "Measure",
+          "id": 1784601671337
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        {
+          "type": "H",
+          "id": 1784601668125
+        },
+        {
+          "type": "Z",
+          "id": 1784601670604,
+          "role": "target",
+          "pairId": 600
+        },
+        {
+          "type": "H",
+          "id": 1784601668165
+        },
+        {
+          "type": "CTRL",
+          "id": 1784601672374,
+          "role": "control",
+          "pairId": 601
+        },
+        null,
+        {
+          "type": "Measure",
+          "id": 1784601670504
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        {
+          "type": "H",
+          "id": 1784601672613
+        },
+        null,
+        null,
+        {
+          "type": "Z",
+          "id": 1784601670728,
+          "role": "target",
+          "pairId": 601
+        },
+        {
+          "type": "H",
+          "id": 1784601671967
+        },
+        {
+          "type": "Measure",
+          "id": 1784601671025
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    ],
+    "numQubits": 3,
+    "numSlots": 30
+  }
+}

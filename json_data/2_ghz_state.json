@@ -1,0 +1,138 @@
+{
+  "type": "quantum_ide_project",
+  "mode": "quantum",
+  "quantumData": {
+    "grid": [
+      [
+        {
+          "type": "H",
+          "id": 1784601669082
+        },
+        {
+          "type": "CTRL",
+          "id": 1784601675205,
+          "role": "control",
+          "pairId": 200
+        },
+        null,
+        {
+          "type": "Measure",
+          "id": 1784601667186
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        {
+          "type": "X",
+          "id": 1784601670617,
+          "role": "target",
+          "pairId": 200
+        },
+        {
+          "type": "CTRL",
+          "id": 1784601669108,
+          "role": "control",
+          "pairId": 201
+        },
+        {
+          "type": "Measure",
+          "id": 1784601675070
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        {
+          "type": "X",
+          "id": 1784601673289,
+          "role": "target",
+          "pairId": 201
+        },
+        {
+          "type": "Measure",
+          "id": 1784601672343
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    ],
+    "numQubits": 3,
+    "numSlots": 30
+  }
+}

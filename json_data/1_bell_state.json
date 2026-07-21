@@ -1,0 +1,93 @@
+{
+  "type": "quantum_ide_project",
+  "mode": "quantum",
+  "quantumData": {
+    "grid": [
+      [
+        {
+          "type": "H",
+          "id": 1784601676080
+        },
+        {
+          "type": "CTRL",
+          "id": 1784601670908,
+          "role": "control",
+          "pairId": 100
+        },
+        {
+          "type": "Measure",
+          "id": 1784601667678
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        {
+          "type": "X",
+          "id": 1784601676136,
+          "role": "target",
+          "pairId": 100
+        },
+        {
+          "type": "Measure",
+          "id": 1784601669456
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    ],
+    "numQubits": 2,
+    "numSlots": 30
+  }
+}
