@@ -6,126 +6,33 @@
       [
         {
           "type": "H",
-          "id": 1784603410557
+          "id": 1784603407800
         },
         {
           "type": "CTRL",
-          "id": 1784603407866,
+          "id": 1784603408497,
           "role": "control",
-          "pairId": 700
+          "pairId": 1500
         },
+        null,
+        null,
+        null,
+        null,
+        null,
         {
           "type": "CTRL",
-          "id": 1784603414487,
+          "id": 1784603407841,
           "role": "control",
-          "pairId": 701
+          "pairId": 1505
         },
-        {
-          "type": "Measure",
-          "id": 1784603414440
-        },
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      [
         {
           "type": "H",
-          "id": 1784603416324
-        },
-        {
-          "type": "CTRL",
-          "id": 1784603407772,
-          "role": "control",
-          "pairId": 700
-        },
-        {
-          "type": "CTRL",
-          "id": 1784603414748,
-          "role": "control",
-          "pairId": 701
+          "id": 1784603414468
         },
         {
           "type": "Measure",
-          "id": 1784603410087
+          "id": 1784603410676
         },
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      [
-        {
-          "type": "H",
-          "id": 1784603411700
-        },
-        {
-          "type": "CTRL",
-          "id": 1784603412666,
-          "role": "control",
-          "pairId": 700
-        },
-        {
-          "type": "CTRL",
-          "id": 1784603416642,
-          "role": "control",
-          "pairId": 701
-        },
-        {
-          "type": "Measure",
-          "id": 1784603412943
-        },
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
         null,
         null,
         null,
@@ -151,26 +58,142 @@
         null,
         {
           "type": "X",
-          "id": 1784603415541,
+          "id": 1784603412129,
           "role": "target",
-          "pairId": 700
+          "pairId": 1500
+        },
+        null,
+        {
+          "type": "CTRL",
+          "id": 1784603407459,
+          "role": "control",
+          "pairId": 1502
+        },
+        {
+          "type": "H",
+          "id": 1784603414850
+        },
+        null,
+        {
+          "type": "CTRL",
+          "id": 1784603415123,
+          "role": "control",
+          "pairId": 1504
+        },
+        null,
+        null,
+        {
+          "type": "Measure",
+          "id": 1784603413652
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        {
+          "type": "H",
+          "id": 1784603409241
+        },
+        null,
+        {
+          "type": "CTRL",
+          "id": 1784603410317,
+          "role": "control",
+          "pairId": 1501
+        },
+        {
+          "type": "X",
+          "id": 1784603408074,
+          "role": "target",
+          "pairId": 1502
+        },
+        null,
+        {
+          "type": "CTRL",
+          "id": 1784603413141,
+          "role": "control",
+          "pairId": 1503
+        },
+        null,
+        null,
+        null,
+        {
+          "type": "Measure",
+          "id": 1784603408274
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        {
+          "type": "X",
+          "id": 1784603417068,
+          "role": "target",
+          "pairId": 1501
+        },
+        null,
+        null,
+        {
+          "type": "X",
+          "id": 1784603408743,
+          "role": "target",
+          "pairId": 1503
         },
         {
           "type": "Z",
-          "id": 1784603410957,
+          "id": 1784603415940,
           "role": "target",
-          "pairId": 701
+          "pairId": 1504
         },
         {
-          "type": "Measure",
-          "id": 1784603409479
+          "type": "X",
+          "id": 1784603407903,
+          "role": "target",
+          "pairId": 1505
         },
         null,
-        null,
-        null,
-        null,
-        null,
-        null,
+        {
+          "type": "Measure",
+          "id": 1784603407493
+        },
         null,
         null,
         null,

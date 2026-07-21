@@ -6,23 +6,30 @@
       [
         {
           "type": "H",
-          "id": 1784603411963
+          "id": 1784603407961
         },
         {
-          "type": "CTRL",
-          "id": 1784603411059,
-          "role": "control",
-          "pairId": 200
+          "type": "Y",
+          "id": 1784603408435
+        },
+        {
+          "type": "Z",
+          "id": 1784603413511
+        },
+        {
+          "type": "X",
+          "id": 1784603416024
         },
         null,
+        null,
+        {
+          "type": "H",
+          "id": 1784603415813
+        },
         {
           "type": "Measure",
-          "id": 1784603414303
+          "id": 1784603411102
         },
-        null,
-        null,
-        null,
-        null,
         null,
         null,
         null,
@@ -47,27 +54,32 @@
         null
       ],
       [
-        null,
         {
-          "type": "X",
-          "id": 1784603409757,
-          "role": "target",
-          "pairId": 200
+          "type": "H",
+          "id": 1784603409190
         },
         {
-          "type": "CTRL",
-          "id": 1784603408282,
-          "role": "control",
-          "pairId": 201
+          "type": "S",
+          "id": 1784603408768
+        },
+        {
+          "type": "S",
+          "id": 1784603414129
+        },
+        {
+          "type": "Z",
+          "id": 1784603414410
+        },
+        null,
+        null,
+        {
+          "type": "H",
+          "id": 1784603408265
         },
         {
           "type": "Measure",
-          "id": 1784603415476
+          "id": 1784603410799
         },
-        null,
-        null,
-        null,
-        null,
         null,
         null,
         null,
@@ -92,22 +104,38 @@
         null
       ],
       [
-        null,
-        null,
         {
-          "type": "X",
-          "id": 1784603414555,
-          "role": "target",
-          "pairId": 201
+          "type": "H",
+          "id": 1784603414941
+        },
+        {
+          "type": "T",
+          "id": 1784603416820
+        },
+        {
+          "type": "T",
+          "id": 1784603414275
+        },
+        {
+          "type": "T",
+          "id": 1784603415652
+        },
+        {
+          "type": "T",
+          "id": 1784603409463
+        },
+        {
+          "type": "Z",
+          "id": 1784603409513
+        },
+        {
+          "type": "H",
+          "id": 1784603412180
         },
         {
           "type": "Measure",
-          "id": 1784603417090
+          "id": 1784603413280
         },
-        null,
-        null,
-        null,
-        null,
         null,
         null,
         null,

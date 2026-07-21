@@ -5,21 +5,74 @@
     "grid": [
       [
         {
-          "type": "H",
-          "id": 1784603411963
+          "type": "X",
+          "id": 1784603416510
         },
         {
           "type": "CTRL",
-          "id": 1784603411059,
+          "id": 1784603413406,
           "role": "control",
-          "pairId": 200
+          "pairId": 1100
         },
         null,
         {
+          "type": "CTRL",
+          "id": 1784603412809,
+          "role": "control",
+          "pairId": 1102
+        },
+        {
           "type": "Measure",
-          "id": 1784603414303
+          "id": 1784603413542
         },
         null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        {
+          "type": "X",
+          "id": 1784603414860
+        },
+        null,
+        {
+          "type": "CTRL",
+          "id": 1784603407496,
+          "role": "control",
+          "pairId": 1101
+        },
+        {
+          "type": "CTRL",
+          "id": 1784603409042,
+          "role": "control",
+          "pairId": 1102
+        },
+        {
+          "type": "Measure",
+          "id": 1784603409286
+        },
         null,
         null,
         null,
@@ -50,21 +103,21 @@
         null,
         {
           "type": "X",
-          "id": 1784603409757,
+          "id": 1784603410257,
           "role": "target",
-          "pairId": 200
+          "pairId": 1100
         },
         {
-          "type": "CTRL",
-          "id": 1784603408282,
-          "role": "control",
-          "pairId": 201
-        },
-        {
-          "type": "Measure",
-          "id": 1784603415476
+          "type": "X",
+          "id": 1784603407747,
+          "role": "target",
+          "pairId": 1101
         },
         null,
+        {
+          "type": "Measure",
+          "id": 1784603415706
+        },
         null,
         null,
         null,
@@ -94,17 +147,17 @@
       [
         null,
         null,
+        null,
         {
           "type": "X",
-          "id": 1784603414555,
+          "id": 1784603414312,
           "role": "target",
-          "pairId": 201
+          "pairId": 1102
         },
         {
           "type": "Measure",
-          "id": 1784603417090
+          "id": 1784603409881
         },
-        null,
         null,
         null,
         null,
@@ -132,7 +185,7 @@
         null
       ]
     ],
-    "numQubits": 3,
+    "numQubits": 4,
     "numSlots": 30
   }
 }

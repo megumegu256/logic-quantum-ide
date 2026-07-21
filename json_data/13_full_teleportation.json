@@ -6,81 +6,39 @@
       [
         {
           "type": "H",
-          "id": 1784603410557
+          "id": 1784603414367
         },
+        {
+          "type": "S",
+          "id": 1784603407828
+        },
+        null,
+        null,
         {
           "type": "CTRL",
-          "id": 1784603407866,
+          "id": 1784603411835,
           "role": "control",
-          "pairId": 700
+          "pairId": 1301
         },
-        {
-          "type": "CTRL",
-          "id": 1784603414487,
-          "role": "control",
-          "pairId": 701
-        },
-        {
-          "type": "Measure",
-          "id": 1784603414440
-        },
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      [
         {
           "type": "H",
-          "id": 1784603416324
+          "id": 1784603407688
         },
+        null,
         {
           "type": "CTRL",
-          "id": 1784603407772,
+          "id": 1784603411579,
           "role": "control",
-          "pairId": 700
+          "pairId": 1303
         },
-        {
-          "type": "CTRL",
-          "id": 1784603414748,
-          "role": "control",
-          "pairId": 701
-        },
+        null,
+        null,
+        null,
+        null,
         {
           "type": "Measure",
-          "id": 1784603410087
+          "id": 1784603411781
         },
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
         null,
         null,
         null,
@@ -100,35 +58,40 @@
         null
       ],
       [
+        null,
+        null,
         {
           "type": "H",
-          "id": 1784603411700
+          "id": 1784603416132
         },
         {
           "type": "CTRL",
-          "id": 1784603412666,
+          "id": 1784603411384,
           "role": "control",
-          "pairId": 700
+          "pairId": 1300
         },
         {
-          "type": "CTRL",
-          "id": 1784603416642,
-          "role": "control",
-          "pairId": 701
+          "type": "X",
+          "id": 1784603411895,
+          "role": "target",
+          "pairId": 1301
         },
+        null,
+        {
+          "type": "CTRL",
+          "id": 1784603408056,
+          "role": "control",
+          "pairId": 1302
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
         {
           "type": "Measure",
-          "id": 1784603412943
+          "id": 1784603416206
         },
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
         null,
         null,
         null,
@@ -148,32 +111,49 @@
         null
       ],
       [
+        null,
+        null,
         null,
         {
           "type": "X",
-          "id": 1784603415541,
+          "id": 1784603414826,
           "role": "target",
-          "pairId": 700
+          "pairId": 1300
+        },
+        null,
+        null,
+        {
+          "type": "X",
+          "id": 1784603413301,
+          "role": "target",
+          "pairId": 1302
         },
         {
           "type": "Z",
-          "id": 1784603410957,
+          "id": 1784603411625,
           "role": "target",
-          "pairId": 701
+          "pairId": 1303
+        },
+        {
+          "type": "S",
+          "id": 1784603415383
+        },
+        {
+          "type": "S",
+          "id": 1784603416142
+        },
+        {
+          "type": "S",
+          "id": 1784603415919
+        },
+        {
+          "type": "H",
+          "id": 1784603416610
         },
         {
           "type": "Measure",
-          "id": 1784603409479
+          "id": 1784603416932
         },
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
         null,
         null,
         null,
@@ -193,7 +173,7 @@
         null
       ]
     ],
-    "numQubits": 4,
+    "numQubits": 3,
     "numSlots": 30
   }
 }

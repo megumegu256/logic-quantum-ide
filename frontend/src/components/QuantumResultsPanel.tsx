@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import useCircuitStore from '../store/useCircuitStore';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { BarChart2, CircleDashed, ListTree, ArrowDownUp } from 'lucide-react';
+import { BarChart2, CircleDashed, ListTree, ArrowDownUp, Copy } from 'lucide-react';
 
 // --- Types ---
 type Tab = 'process' | 'counts' | 'phase' | 'statevector';
@@ -178,6 +178,69 @@ const QuantumResultsPanel: React.FC = () => {
     cursor: 'pointer', transition: 'all 0.2s',
   });
 
+  const handleCopyText = async () => {
+    if (!calc_steps || !quantumSimulationResult) return;
+    
+    let textStr = "【量子シミュレーション結果】\n\n";
+
+    // 1. 計算過程
+    textStr += "■ 計算過程\n";
+    calc_steps.forEach((step: any, idx: number) => {
+      textStr += `${idx + 1}. ${step.label}\n`;
+      const sv = parseStatevector(step.statevector);
+      const diracStr = sv.map(s => {
+        const coeff = formatComplexRoot(s.real, s.imag);
+        if (coeff === '1') return `|${s.basisStr}⟩`;
+        if (coeff === '-1') return `- |${s.basisStr}⟩`;
+        if (coeff === 'i') return `i|${s.basisStr}⟩`;
+        if (coeff === '-i') return `-i|${s.basisStr}⟩`;
+        return `(${coeff})|${s.basisStr}⟩`;
+      }).join(' + ');
+
+      if (step.qubits_state) {
+        step.qubits_state.forEach((qs: any, qidx: number) => {
+          let fQs = typeof qs === 'string' ? qs : '';
+          if (Array.isArray(qs)) {
+            const parsed = parseStatevector(qs);
+            fQs = parsed.map(s => {
+              const coeff = formatComplexRoot(s.real, s.imag);
+              if (coeff === '1') return `|${s.basisStr}⟩`;
+              if (coeff === '-1') return `- |${s.basisStr}⟩`;
+              if (coeff === 'i') return `i|${s.basisStr}⟩`;
+              if (coeff === '-i') return `-i|${s.basisStr}⟩`;
+              return `(${coeff})|${s.basisStr}⟩`;
+            }).join(' + ');
+          }
+          if (fQs === 'ENTANGLED') fQs = 'もつれ状態 (Entangled)';
+          textStr += `  q${qidx}: ${fQs}\n`;
+        });
+      }
+      textStr += `  全体: ${diracStr || '0'}\n\n`;
+    });
+
+    // 2. 状態ベクトル (最終)
+    textStr += "■ 最終状態ベクトル\n";
+    filteredStatevector.forEach(state => {
+      textStr += `  |${state.basisStr}⟩ : ${(state.probability * 100).toFixed(1)}%\n`;
+    });
+    
+    // 3. Counts
+    if (countsData && countsData.length > 0) {
+      textStr += "\n■ 測定結果 (Counts)\n";
+      countsData.forEach(d => {
+        textStr += `  ${d.state} : ${d.count} 回\n`;
+      });
+    }
+
+    try {
+      await navigator.clipboard.writeText(textStr);
+      alert("クリップボードにコピーしました！\nチャット等にそのまま貼り付けて共有できます。");
+    } catch (e) {
+      console.error(e);
+      alert("コピーに失敗しました。");
+    }
+  };
+
   return (
     <div 
       ref={panelRef}
@@ -185,19 +248,38 @@ const QuantumResultsPanel: React.FC = () => {
       onClick={() => setQuantumSelectedStep(null)}
     >
       {/* タブヘッダー */}
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', padding: '0 10px' }}>
-        <button style={tabButtonStyle(activeTab === 'process')} onClick={() => setActiveTab('process')}>
-          <ListTree size={14} /> 計算過程
-        </button>
-        <button style={tabButtonStyle(activeTab === 'counts')} onClick={() => setActiveTab('counts')}>
-          <BarChart2 size={14} /> Counts
-        </button>
-        <button style={tabButtonStyle(activeTab === 'phase')} onClick={() => setActiveTab('phase')}>
-          <CircleDashed size={14} /> Phase Disks
-        </button>
-        <button style={tabButtonStyle(activeTab === 'statevector')} onClick={() => setActiveTab('statevector')}>
-          <ListTree size={14} /> Statevector
-        </button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', padding: '0 10px' }}>
+        <div style={{ display: 'flex' }}>
+          <button style={tabButtonStyle(activeTab === 'process')} onClick={() => setActiveTab('process')}>
+            <ListTree size={14} /> 計算過程
+          </button>
+          <button style={tabButtonStyle(activeTab === 'counts')} onClick={() => setActiveTab('counts')}>
+            <BarChart2 size={14} /> Counts
+          </button>
+          <button style={tabButtonStyle(activeTab === 'phase')} onClick={() => setActiveTab('phase')}>
+            <CircleDashed size={14} /> Phase Disks
+          </button>
+          <button style={tabButtonStyle(activeTab === 'statevector')} onClick={() => setActiveTab('statevector')}>
+            <ListTree size={14} /> Statevector
+          </button>
+        </div>
+        
+        {/* コピーボタン */}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <button 
+            onClick={handleCopyText} 
+            title="計算過程と結果をテキストとしてクリップボードにコピーします"
+            style={{ 
+              display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, 
+              color: 'var(--color-text-primary)', backgroundColor: 'var(--color-bg-panel)', border: '1px solid var(--color-border)', 
+              borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg-base)'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg-panel)'}
+          >
+            <Copy size={14} /> テキストとしてコピー
+          </button>
+        </div>
       </div>
 
       {/* タブコンテンツ */}

@@ -140,6 +140,168 @@ def generate():
     for i in range(4): g7[i][3] = make_gate('Measure')
     save_project("7_multi_control.json", g7, 4)
 
+
+    # 8. Superdense Coding (2 qubits)
+    g8 = empty_grid(2)
+    g8[0][0] = make_gate('H')
+    pid80 = 800
+    g8[0][1] = make_gate('CTRL', role='control', pair_id=pid80)
+    g8[1][1] = make_gate('X', role='target', pair_id=pid80)
+    g8[0][2] = make_gate('Z')
+    g8[0][3] = make_gate('X')
+    pid81 = 801
+    g8[0][4] = make_gate('CTRL', role='control', pair_id=pid81)
+    g8[1][4] = make_gate('X', role='target', pair_id=pid81)
+    g8[0][5] = make_gate('H')
+    g8[0][6] = make_gate('Measure')
+    g8[1][6] = make_gate('Measure')
+    save_project("8_superdense_coding.json", g8, 2)
+
+    # 9. Phase Identity Check (Y, Z, S, T)
+    g9 = empty_grid(3)
+    g9[0][0] = make_gate('H')
+    g9[1][0] = make_gate('H')
+    g9[2][0] = make_gate('H')
+    
+    g9[0][1] = make_gate('Y')
+    g9[0][2] = make_gate('Z')
+    g9[0][3] = make_gate('X')
+    
+    g9[1][1] = make_gate('S')
+    g9[1][2] = make_gate('S')
+    g9[1][3] = make_gate('Z')
+    
+    g9[2][1] = make_gate('T')
+    g9[2][2] = make_gate('T')
+    g9[2][3] = make_gate('T')
+    g9[2][4] = make_gate('T')
+    g9[2][5] = make_gate('Z')
+    
+    g9[0][6] = make_gate('H')
+    g9[1][6] = make_gate('H')
+    g9[2][6] = make_gate('H')
+    g9[0][7] = make_gate('Measure')
+    g9[1][7] = make_gate('Measure')
+    g9[2][7] = make_gate('Measure')
+    save_project("9_identity_gates.json", g9, 3)
+
+    # 10. Bernstein-Vazirani (101)
+    g10 = empty_grid(4)
+    g10[3][0] = make_gate('X')
+    for i in range(4): g10[i][1] = make_gate('H')
+    pid10_0 = 1000
+    g10[0][2] = make_gate('CTRL', role='control', pair_id=pid10_0)
+    g10[3][2] = make_gate('X', role='target', pair_id=pid10_0)
+    pid10_1 = 1001
+    g10[2][3] = make_gate('CTRL', role='control', pair_id=pid10_1)
+    g10[3][3] = make_gate('X', role='target', pair_id=pid10_1)
+    for i in range(3): g10[i][4] = make_gate('H')
+    for i in range(3): g10[i][5] = make_gate('Measure')
+    save_project("10_bernstein_vazirani.json", g10, 4)
+
+    # 11. Quantum Half-Adder (1 + 1)
+    g11 = empty_grid(4)
+    g11[0][0] = make_gate('X')
+    g11[1][0] = make_gate('X')
+    pid11_0 = 1100
+    g11[0][1] = make_gate('CTRL', role='control', pair_id=pid11_0)
+    g11[2][1] = make_gate('X', role='target', pair_id=pid11_0)
+    pid11_1 = 1101
+    g11[1][2] = make_gate('CTRL', role='control', pair_id=pid11_1)
+    g11[2][2] = make_gate('X', role='target', pair_id=pid11_1)
+    pid11_2 = 1102
+    g11[0][3] = make_gate('CTRL', role='control', pair_id=pid11_2)
+    g11[1][3] = make_gate('CTRL', role='control', pair_id=pid11_2)
+    g11[3][3] = make_gate('X', role='target', pair_id=pid11_2)
+    for i in range(4): g11[i][4] = make_gate('Measure')
+    save_project("11_half_adder.json", g11, 4)
+
+    # 12. Bit-flip Error Correction
+    g12 = empty_grid(3)
+    g12[0][0] = make_gate('X')
+    pid12_0 = 1200
+    g12[0][1] = make_gate('CTRL', role='control', pair_id=pid12_0)
+    g12[1][1] = make_gate('X', role='target', pair_id=pid12_0)
+    pid12_1 = 1201
+    g12[0][2] = make_gate('CTRL', role='control', pair_id=pid12_1)
+    g12[2][2] = make_gate('X', role='target', pair_id=pid12_1)
+    g12[1][3] = make_gate('X') # Error!
+    pid12_2 = 1202
+    g12[0][4] = make_gate('CTRL', role='control', pair_id=pid12_2)
+    g12[1][4] = make_gate('X', role='target', pair_id=pid12_2)
+    pid12_3 = 1203
+    g12[0][5] = make_gate('CTRL', role='control', pair_id=pid12_3)
+    g12[2][5] = make_gate('X', role='target', pair_id=pid12_3)
+    pid12_4 = 1204
+    g12[1][6] = make_gate('CTRL', role='control', pair_id=pid12_4)
+    g12[2][6] = make_gate('CTRL', role='control', pair_id=pid12_4)
+    g12[0][6] = make_gate('X', role='target', pair_id=pid12_4)
+    for i in range(3): g12[i][7] = make_gate('Measure')
+    save_project("12_qec_bit_flip.json", g12, 3)
+
+    # 13. Full Quantum Teleportation
+    g13 = empty_grid(3)
+    g13[0][0] = make_gate('H')
+    g13[0][1] = make_gate('S')
+    g13[1][2] = make_gate('H')
+    pid13_0 = 1300
+    g13[1][3] = make_gate('CTRL', role='control', pair_id=pid13_0)
+    g13[2][3] = make_gate('X', role='target', pair_id=pid13_0)
+    pid13_1 = 1301
+    g13[0][4] = make_gate('CTRL', role='control', pair_id=pid13_1)
+    g13[1][4] = make_gate('X', role='target', pair_id=pid13_1)
+    g13[0][5] = make_gate('H')
+    pid13_2 = 1302
+    g13[1][6] = make_gate('CTRL', role='control', pair_id=pid13_2)
+    g13[2][6] = make_gate('X', role='target', pair_id=pid13_2)
+    pid13_3 = 1303
+    g13[0][7] = make_gate('CTRL', role='control', pair_id=pid13_3)
+    g13[2][7] = make_gate('Z', role='target', pair_id=pid13_3)
+    for _ in range(3): g13[2][8+_] = make_gate('S')
+    g13[2][11] = make_gate('H')
+    for i in range(3): g13[i][12] = make_gate('Measure')
+    save_project("13_full_teleportation.json", g13, 3)
+
+    # 14. GHZ X-basis Measurement
+    g14 = empty_grid(3)
+    g14[0][0] = make_gate('H')
+    pid14_0 = 1400
+    g14[0][1] = make_gate('CTRL', role='control', pair_id=pid14_0)
+    g14[1][1] = make_gate('X', role='target', pair_id=pid14_0)
+    pid14_1 = 1401
+    g14[1][2] = make_gate('CTRL', role='control', pair_id=pid14_1)
+    g14[2][2] = make_gate('X', role='target', pair_id=pid14_1)
+    for i in range(3): g14[i][3] = make_gate('H')
+    for i in range(3): g14[i][4] = make_gate('Measure')
+    save_project("14_ghz_x_basis.json", g14, 3)
+
+    # 15. Entanglement Swapping
+    g15 = empty_grid(4)
+    g15[0][0] = make_gate('H')
+    g15[2][0] = make_gate('H')
+    pid15_0 = 1500
+    g15[0][1] = make_gate('CTRL', role='control', pair_id=pid15_0)
+    g15[1][1] = make_gate('X', role='target', pair_id=pid15_0)
+    pid15_1 = 1501
+    g15[2][2] = make_gate('CTRL', role='control', pair_id=pid15_1)
+    g15[3][2] = make_gate('X', role='target', pair_id=pid15_1)
+    pid15_2 = 1502
+    g15[1][3] = make_gate('CTRL', role='control', pair_id=pid15_2)
+    g15[2][3] = make_gate('X', role='target', pair_id=pid15_2)
+    g15[1][4] = make_gate('H')
+    pid15_3 = 1503
+    g15[2][5] = make_gate('CTRL', role='control', pair_id=pid15_3)
+    g15[3][5] = make_gate('X', role='target', pair_id=pid15_3)
+    pid15_4 = 1504
+    g15[1][6] = make_gate('CTRL', role='control', pair_id=pid15_4)
+    g15[3][6] = make_gate('Z', role='target', pair_id=pid15_4)
+    pid15_5 = 1505
+    g15[0][7] = make_gate('CTRL', role='control', pair_id=pid15_5)
+    g15[3][7] = make_gate('X', role='target', pair_id=pid15_5)
+    g15[0][8] = make_gate('H')
+    for i in range(4): g15[i][9] = make_gate('Measure')
+    save_project("15_entanglement_swapping.json", g15, 4)
+
 if __name__ == "__main__":
     generate()
-    print("Generated 7 JSON project files.")
+    print("Generated 15 JSON project files.")
