@@ -144,16 +144,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onResetLayout }) => {
               if (g.controls.includes(tgt.q)) return; // Invalid placement
               const numCtrls = g.controls.length;
               if (numCtrls === 0) {
-                 const baseType = tgt.type === 'cz' ? 'z' : 'x';
+                 const baseType = (tgt.type === 'cz' || tgt.type === 'z') ? 'z' : 'x';
                  circuit.push({ gate: baseType, qubit: tgt.q, slot: sIndex, original_type: tgt.type });
               } else if (numCtrls === 1) {
-                 const gateType = tgt.type === 'cz' ? 'cz' : 'cx';
+                 const gateType = (tgt.type === 'cz' || tgt.type === 'z') ? 'cz' : 'cx';
                  circuit.push({ gate: gateType, qubits: [g.controls[0], tgt.q], slot: sIndex });
               } else if (numCtrls === 2) {
-                 const gateType = tgt.type === 'cz' ? 'ccz' : 'ccx';
+                 const gateType = (tgt.type === 'cz' || tgt.type === 'z') ? 'ccz' : 'ccx';
                  circuit.push({ gate: gateType, qubits: [g.controls[0], g.controls[1], tgt.q], slot: sIndex });
               } else {
-                 const gateType = tgt.type === 'cz' ? 'mcz' : 'mcx';
+                 const gateType = (tgt.type === 'cz' || tgt.type === 'z') ? 'mcz' : 'mcx';
                  circuit.push({ gate: gateType, controls: g.controls, target: tgt.q, slot: sIndex });
               }
            });

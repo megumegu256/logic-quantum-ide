@@ -52,16 +52,16 @@ def convert_grid_to_circuit(grid, num_qubits, num_slots):
                     continue
                 num_ctrls = len(g['controls'])
                 if num_ctrls == 0:
-                    base_type = 'z' if tgt['type'] == 'cz' else 'x'
+                    base_type = 'z' if tgt['type'] in ('cz', 'z') else 'x'
                     circuit.append({'gate': base_type, 'qubit': tgt['q'], 'slot': sIndex, 'original_type': tgt['type']})
                 elif num_ctrls == 1:
-                    gate_type = 'cz' if tgt['type'] == 'cz' else 'cx'
+                    gate_type = 'cz' if tgt['type'] in ('cz', 'z') else 'cx'
                     circuit.append({'gate': gate_type, 'qubits': [g['controls'][0], tgt['q']], 'slot': sIndex})
                 elif num_ctrls == 2:
-                    gate_type = 'ccz' if tgt['type'] == 'cz' else 'ccx'
+                    gate_type = 'ccz' if tgt['type'] in ('cz', 'z') else 'ccx'
                     circuit.append({'gate': gate_type, 'qubits': [g['controls'][0], g['controls'][1], tgt['q']], 'slot': sIndex})
                 else:
-                    gate_type = 'mcz' if tgt['type'] == 'cz' else 'mcx'
+                    gate_type = 'mcz' if tgt['type'] in ('cz', 'z') else 'mcx'
                     circuit.append({'gate': gate_type, 'controls': g['controls'], 'target': tgt['q'], 'slot': sIndex})
                     
     # Sort by slot
