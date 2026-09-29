@@ -406,19 +406,7 @@ const QuantumResultsPanel: React.FC = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
                   <h3 style={{ margin: 0, fontSize: '14px', color: 'var(--color-text-primary)', borderTop: '1px solid var(--color-border)', paddingTop: '20px' }}>出力結果</h3>
                   
-                  {/* MEASURE Explanation Box */}
-                  <div style={{ padding: '12px', backgroundColor: 'rgba(59,130,246,0.05)', borderRadius: '6px', border: '1px solid rgba(59,130,246,0.2)', fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>
-                    <strong>💡 MEASUREと出力確率の関係性</strong><br/>
-                    {(!measured_qubits || measured_qubits.length === 0) ? (
-                      <>
-                        現在、MEASURE（測定）ゲートは配置されていません。そのため、上記の計算過程で求まった<strong>最終状態ベクトル</strong>の振幅の絶対値の2乗が、そのまま各状態の出力確率（%）として観測されます。
-                      </>
-                    ) : (
-                      <>
-                        現在の回路では、<strong>q{measured_qubits.join(', q')}</strong> が測定されています。測定される直前の全体状態（状態ベクトル）に対して、測定対象の量子ビットが特定の状態（例: 0または1）になる確率を計算した結果が、以下の確率分布になります。未測定のビットは影響を与えず、測定されたビットの確率のみが反映されます。
-                      </>
-                    )}
-                  </div>
+
 
                   <div style={{ padding: '12px', backgroundColor: 'rgba(168,85,247,0.05)', borderRadius: '6px', border: '1px solid rgba(168,85,247,0.2)' }}>
                     <div style={{ fontSize: '13px', color: 'var(--color-text-primary)', marginBottom: '10px' }}>
