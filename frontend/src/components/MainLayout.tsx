@@ -56,10 +56,17 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onResetLayout }) => {
   const fileRef = useRef<HTMLInputElement>(null);
   const { 
     mode, quantumGrid, quantumNumQubits, quantumNumSlots, setQuantumSimulationResult,
+    connectionNotice, setConnectionNotice,
     nodes, edges, loadCircuit, applyLayout, edgeType, setEdgeType, 
     showLogicPanel, showMiniMap, toggleLogicPanel, toggleMiniMap 
   } = useCircuitStore();
   const API = 'http://localhost:8000';
+
+  useEffect(() => {
+    if (!connectionNotice) return;
+    const timer = window.setTimeout(() => setConnectionNotice(null), 3500);
+    return () => window.clearTimeout(timer);
+  }, [connectionNotice, setConnectionNotice]);
 
   const dl = (content: string, filename: string) => {
     const a = document.createElement('a');
@@ -188,6 +195,18 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onResetLayout }) => {
   );
 
   return (
+    <>
+    {connectionNotice && (
+      <div role="alert" style={{
+        position: 'fixed', top: '72px', left: '50%', transform: 'translateX(-50%)',
+        zIndex: 100, maxWidth: 'min(520px, calc(100vw - 32px))', padding: '10px 16px',
+        color: '#fecaca', backgroundColor: '#3b1720', border: '1px solid #be123c',
+        borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+        fontSize: '13px', fontWeight: 600,
+      }}>
+        {connectionNotice}
+      </div>
+    )}
     <header className="h-14 flex-none flex items-center justify-between px-4 select-none"
       style={{ backgroundColor: 'var(--color-bg-header)', borderBottom: '1px solid var(--color-border)',
         boxShadow: '0 2px 20px rgba(91,141,246,0.08)' }}>
@@ -338,6 +357,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onResetLayout }) => {
         </button>
       </div>
     </header>
+    </>
   );
 };
 

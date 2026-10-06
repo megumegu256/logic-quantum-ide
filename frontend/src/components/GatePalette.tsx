@@ -206,9 +206,9 @@ export const QUANTUM_GATES: GateMeta[] = [
     description: 'Pauli-Z',
     icon: <Zap size={ICON_SIZE} />,
     handles: { inputs: 1, outputs: 1 },
-    borderColor: '#7c3aed',
-    bgColor: 'rgba(124,58,237,0.12)',
-    textColor: '#a78bfa',
+    borderColor: '#4f78c7',
+    bgColor: 'rgba(79,120,199,0.12)',
+    textColor: '#91afe6',
   },
   {
     gateType: 'S',

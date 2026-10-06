@@ -107,9 +107,11 @@ interface CircuitState {
   quantumNumQubits: number;
   quantumNumSlots: number;
   quantumSimulationResult: any | null;
+  connectionNotice: string | null;
   setQuantumGrid: (grid: (QuantumGate | null)[][]) => void;
   setQuantumNumQubits: (num: number) => void;
   setQuantumSimulationResult: (res: any) => void;
+  setConnectionNotice: (message: string | null) => void;
 
   quantumPast: (QuantumGate | null)[][][];
   quantumFuture: (QuantumGate | null)[][][];
@@ -172,6 +174,18 @@ interface CircuitState {
 
 const API_BASE = 'http://localhost:8000';
 
+const QUANTUM_GATE_TYPES = new Set(['H', 'X', 'Y', 'Z', 'S', 'T', 'CTRL', 'Measure']);
+
+const isValidControlConnection = (
+  sourceType: GateType | undefined,
+  targetType: GateType | undefined,
+): boolean => {
+  if (sourceType !== 'CTRL' && targetType !== 'CTRL') return true;
+  if (sourceType === 'CTRL' && targetType === 'CTRL') return true;
+  const otherType = sourceType === 'CTRL' ? targetType : sourceType;
+  return otherType === 'X' || otherType === 'Z';
+};
+
 // ============================================================
 // Zustand ストア定義
 // ============================================================
@@ -200,6 +214,7 @@ const useCircuitStore = create<CircuitState>((set, get) => ({
   quantumNumQubits:  2,
   quantumNumSlots:   30,
   quantumSimulationResult: null,
+  connectionNotice: null,
 
   quantumPast:       [],
   quantumFuture:     [],
@@ -247,6 +262,7 @@ const useCircuitStore = create<CircuitState>((set, get) => ({
   },
 
   setQuantumGrid: (grid) => set({ quantumGrid: grid }),
+  setConnectionNotice: (message) => set({ connectionNotice: message }),
   setQuantumNumQubits: (num) => set((state) => {
     // リサイズ時の安全な処理（切り詰め・拡張）
     let newGrid = Array(num).fill(null).map((_, i) => {
@@ -291,7 +307,17 @@ const useCircuitStore = create<CircuitState>((set, get) => ({
   },
 
   onConnect: (connection) => {
-    const { edgeType } = get();
+    const { edgeType, nodes } = get();
+    const sourceType = nodes.find((node) => node.id === connection.source)?.data.gateType;
+    const targetType = nodes.find((node) => node.id === connection.target)?.data.gateType;
+
+    if (
+      sourceType && targetType &&
+      QUANTUM_GATE_TYPES.has(sourceType) && QUANTUM_GATE_TYPES.has(targetType)
+    ) {
+      if (!isValidControlConnection(sourceType, targetType)) return;
+    }
+
     get().pushHistory();
     set((state) => ({
       edges: addEdge(

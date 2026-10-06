@@ -6,6 +6,7 @@ const QuantumCircuitCanvas: React.FC = () => {
   const { 
     quantumGrid, quantumNumQubits, quantumNumSlots, 
     setQuantumGrid, setQuantumNumQubits,
+    setConnectionNotice,
     pushQuantumHistory, undoQuantum, redoQuantum,
     quantumHoveredStep, quantumSelectedStep,
     setQuantumHoveredStep, setQuantumSelectedStep
@@ -195,29 +196,6 @@ const QuantumCircuitCanvas: React.FC = () => {
     setDragOverCell(null);
     setDraggingGate(null);
 
-    const applyWireStraddle = (grid: any[][], q: number, s: number) => {
-      const g = grid[q][s];
-      if (!g) return;
-      let spanningPairId: number | null = null;
-      const pairIds = new Set<number>();
-      for (let i = 0; i < grid.length; i++) {
-        if (grid[i][s]?.pairId) pairIds.add(grid[i][s].pairId);
-      }
-      for (const pid of pairIds) {
-        const qs: number[] = [];
-        for (let i = 0; i < grid.length; i++) {
-          if (grid[i][s]?.pairId === pid) qs.push(i);
-        }
-        if (Math.min(...qs) < q && Math.max(...qs) > q) {
-          spanningPairId = pid;
-          break;
-        }
-      }
-      if (spanningPairId) {
-        g.pairId = spanningPairId;
-      }
-    };
-
     const mode = e.dataTransfer.getData('mode');
     if (mode === 'new') {
       pushQuantumHistory();
@@ -230,7 +208,6 @@ const QuantumCircuitCanvas: React.FC = () => {
         newGrid[qIndex][sIndex] = { type: gateType, id: Date.now(), pairId: Date.now() };
       }
       
-      applyWireStraddle(newGrid, qIndex, sIndex);
       setQuantumGrid(newGrid);
     } else if (mode === 'connect') {
       const srcQ = parseInt(e.dataTransfer.getData('q'));
@@ -239,8 +216,23 @@ const QuantumCircuitCanvas: React.FC = () => {
         const srcGate = quantumGrid[srcQ][srcS];
         const tgtGate = quantumGrid[qIndex][sIndex];
         if (srcGate && tgtGate) {
-          // CTRLが含まれないワイヤー接続（XとZなど）は標準的な量子回路では発生しないためブロック
-          if (srcGate.type !== 'CTRL' && tgtGate.type !== 'CTRL') {
+          const hasValidEndpoints =
+            (srcGate.type === 'CTRL' && tgtGate.type === 'CTRL') ||
+            (srcGate.type === 'CTRL' && (tgtGate.type === 'X' || tgtGate.type === 'Z')) ||
+            (tgtGate.type === 'CTRL' && (srcGate.type === 'X' || srcGate.type === 'Z'));
+          if (!hasValidEndpoints) {
+            setConnectionNotice('量子制御線は CTRL 同士、または CTRL と X/Z の組み合わせのみ接続できます。');
+            return;
+          }
+
+          const minQ = Math.min(srcQ, qIndex);
+          const maxQ = Math.max(srcQ, qIndex);
+          const intermediateGate = quantumGrid
+            .slice(minQ + 1, maxQ)
+            .map(row => row[sIndex])
+            .find(gate => gate !== null && gate.type !== 'CTRL');
+          if (intermediateGate) {
+            setConnectionNotice('制御線の途中には CTRL 以外のゲートを置けません。');
             return;
           }
           
@@ -249,16 +241,23 @@ const QuantumCircuitCanvas: React.FC = () => {
           const srcPairId = srcGate.pairId || Date.now();
           const tgtPairId = tgtGate.pairId || srcPairId;
           
-          const minQ = Math.min(srcQ, qIndex);
-          const maxQ = Math.max(srcQ, qIndex);
-          
           const pairIdsToMerge = new Set<number>([tgtPairId, srcPairId]);
+
+          const targetCount = newGrid
+            .map(row => row[sIndex])
+            .filter(gate => gate && pairIdsToMerge.has(gate.pairId ?? -1))
+            .filter(gate => gate!.type === 'X' || gate!.type === 'Z').length;
+          if (targetCount > 1) {
+            setConnectionNotice('1つの制御グループに接続できる X/Z target は1つまでです。');
+            return;
+          }
+
           srcGate.pairId = srcPairId;
           tgtGate.pairId = srcPairId;
 
           for (let q = minQ + 1; q < maxQ; q++) {
              const g = newGrid[q][sIndex];
-             if (g) {
+             if (g && ['X', 'Z', 'CTRL'].includes(g.type)) {
                 if (g.pairId) pairIdsToMerge.add(g.pairId);
                 g.pairId = srcPairId;
              }
@@ -355,7 +354,6 @@ const QuantumCircuitCanvas: React.FC = () => {
           setSelectedCells([{ q: qIndex, s: sIndex }]);
         }
         
-        applyWireStraddle(newGrid, qIndex, sIndex);
         setQuantumGrid(newGrid);
       }
     }
@@ -575,6 +573,25 @@ const QuantumCircuitCanvas: React.FC = () => {
                   {cell && (() => {
                      const pairedCells = quantumGrid.map(r => r[sIndex]).filter(c => c && c.pairId === cell.pairId);
                      const hasControl = pairedCells.some(c => c && c.type === 'CTRL');
+                     const targetCell = pairedCells.find(c => c && (c.type === 'X' || c.type === 'Z'));
+                     const targetMeta = targetCell
+                       ? QUANTUM_GATES.find(g => g.gateType.toUpperCase() === targetCell.type.toUpperCase())
+                       : null;
+                     const connectionColor = targetMeta?.borderColor ?? borderColor;
+                     const controlQIndices = quantumGrid
+                       .map((row, q) => row[sIndex]?.pairId === cell.pairId && row[sIndex]?.type === 'CTRL' ? q : -1)
+                       .filter(q => q >= 0);
+                     const controlCount = controlQIndices.length;
+                     const targetGateName = targetCell?.type === 'Z' ? 'Z' : 'X';
+                     const compoundGateName = controlCount === 1
+                       ? `C${targetGateName}`
+                       : controlCount === 2
+                         ? `CC${targetGateName}`
+                         : controlCount >= 3
+                           ? `MC${targetGateName}`
+                           : null;
+                     const isTargetAboveControls = controlCount > 0 &&
+                       qIndex < Math.min(...controlQIndices);
                      const isControl = cell.type === 'CTRL';
                      const isZTarget = cell.type === 'Z' && hasControl;
                      const isXTarget = cell.type === 'X' && hasControl;
@@ -626,7 +643,13 @@ const QuantumCircuitCanvas: React.FC = () => {
                         }}
                       >
                         {isControl || isZTarget ? (
-                           <div style={{ width: '16px', height: '16px', borderRadius: '50%', backgroundColor: borderColor, zIndex: 10 }} />
+                          <div style={{
+                            width: isZTarget ? '24px' : '16px',
+                            height: isZTarget ? '24px' : '16px',
+                            borderRadius: '50%',
+                             backgroundColor: isZTarget ? '#4f78c7' : borderColor,
+                            zIndex: 10,
+                          }} />
                         ) : isXTarget ? (
                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: `2px solid ${borderColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', backgroundColor: 'var(--color-bg-base)', zIndex: 10 }}>
                               <div style={{ position: 'absolute', width: '100%', height: '2px', backgroundColor: borderColor }} />
@@ -662,11 +685,31 @@ const QuantumCircuitCanvas: React.FC = () => {
                            const height = distance - r1 - r2;
 
                            return (
-                             <div style={{ position: 'absolute', left: '50%', top: `${startY}px`, width: '2px', height: `${height}px`, backgroundColor: borderColor, zIndex: 0, transform: 'translateX(-50%)' }} />
+                             <div style={{ position: 'absolute', left: '50%', top: `${startY}px`, width: '2px', height: `${height}px`, backgroundColor: connectionColor, zIndex: 0, transform: 'translateX(-50%)' }} />
                            );
                         }
                         return null;
                       })()}
+
+                      {targetCell === cell && compoundGateName && (
+                        <div style={{
+                          position: 'absolute',
+                          left: '50%',
+                          ...(isTargetAboveControls ? { top: '-18px' } : { bottom: '-18px' }),
+                          transform: 'translateX(-50%)',
+                          color: connectionColor,
+                          fontSize: '18px',
+                          fontWeight: 700,
+                          fontFamily: 'var(--font-mono)',
+                          letterSpacing: '0.05em',
+                          lineHeight: 1,
+                          whiteSpace: 'nowrap',
+                          pointerEvents: 'none',
+                          zIndex: 15,
+                        }}>
+                          {compoundGateName}
+                        </div>
+                      )}
 
                     {/* 接続用ハンドル (上) */}
                     {canConnect && (
