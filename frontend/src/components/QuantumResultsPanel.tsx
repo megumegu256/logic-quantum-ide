@@ -1,10 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import useCircuitStore from '../store/useCircuitStore';
+import 'katex/dist/katex.min.css';
+import { BlockMath, InlineMath } from 'react-katex';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { BarChart2, CircleDashed, ListTree, ArrowDownUp, Copy } from 'lucide-react';
 
 // --- Types ---
-type Tab = 'process' | 'counts' | 'phase' | 'statevector';
+type Tab = 'process' | 'counts' | 'phase' | 'statevector' | 'math';
 type SortMode = 'basis' | 'frequency';
 type DisplayMode = 'rect' | 'polar' | 'root';
 
@@ -98,7 +100,22 @@ const QuantumResultsPanel: React.FC = () => {
     return () => window.removeEventListener('mousedown', handleGlobalClick);
   }, [setQuantumSelectedStep]);
 
-  const { counts, statevector, error, measured_qubits, calc_steps } = quantumSimulationResult || {};
+  const { counts, statevector, error, measured_qubits, calc_steps, latex } = quantumSimulationResult || {};
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentStepData = latex?.[currentIndex];
+
+  // historyが更新されたらStep 0に戻す
+  React.useEffect(() => {
+    setCurrentIndex(0);
+  }, [latex]);
+
+  const handlePrev = () => {
+    if (currentIndex > 0) setCurrentIndex(currentIndex - 1);
+  };
+
+  const handleNext = () => {
+    if (currentIndex < latex.length - 1 ) setCurrentIndex(currentIndex + 1);
+  };
 
   const filteredStatevector = useMemo(() => {
     return parseStatevector(statevector || []);
@@ -247,6 +264,9 @@ const QuantumResultsPanel: React.FC = () => {
           </button>
           <button style={tabButtonStyle(activeTab === 'statevector')} onClick={() => setActiveTab('statevector')}>
             <ListTree size={14} /> Statevector
+          </button>
+          <button style={tabButtonStyle(activeTab === 'math')} onClick={() => setActiveTab('math')}>
+            <ListTree size={14} /> 数式
           </button>
         </div>
         
@@ -536,6 +556,43 @@ const QuantumResultsPanel: React.FC = () => {
             ) : (
               <div style={{ width: '100%', textAlign: 'center', color: 'var(--color-text-muted)', marginTop: '20px' }}>
                 有効な状態ベクトルデータがありません。
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* math タブ */}
+        {activeTab === 'math' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {latex && latex.length > 0 ? (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginBottom: '10px' }}>
+                  <button onClick={handlePrev} disabled={currentIndex === 0} style={{ padding: '5px 15px', cursor: currentIndex === 0 ? 'not-allowed' : 'pointer' }}>
+                    ◀ 前のステップ
+                  </button>
+                  <span style={{ fontWeight: 'bold' }}>
+                    Step {currentStepData.step} / {latex.length - 1}
+                  </span>
+                  <button onClick={handleNext} disabled={currentIndex === latex.length - 1} style={{ padding: '5px 15px', cursor: currentIndex === latex.length - 1 ? 'not-allowed' : 'pointer' }}>
+                    次のステップ ▶
+                  </button>
+                </div>
+                <div style={{ flex: '1', border: '2px solid #333', borderRadius: '8px', padding: '10px', overflowY: 'auto' }}>
+                  <h3 style={{ margin: '0 0 10px 0', textAlign: 'center' }}>式</h3>
+                  <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                    {currentStepData.step === 0 
+                      ? <span>初期状態</span> 
+                      : <><InlineMath math={`\\text{${currentStepData.name.toUpperCase()}}`} /> ゲート適用</>
+                    }
+                  </div>
+                  <div style={{ overflowX: 'auto', paddingBottom: '10px' }}>
+                    <BlockMath math={`\\def\\arraystretch{1.5} ${currentStepData.equation_latex}`} />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginTop: '20px' }}>
+                計算過程のデータがありません。
               </div>
             )}
           </div>

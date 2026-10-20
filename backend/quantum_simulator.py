@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import io
 import base64
 import logging
+from equation import SymbolicSimulator
 
 plt.switch_backend('Agg')
 logging.basicConfig(level=logging.INFO)
@@ -164,6 +165,9 @@ def run_simulation(circuit_definition: list, shots: int = 1024, num_qubits: int 
         if not saved_state:
             qc.save_statevector()
 
+        simulator = SymbolicSimulator(num_qubits)
+        history = simulator.apply_qiskit_circuit(qc)
+
         fig = None
         try:
             fig = qc.draw(output='mpl', style='iqp')
@@ -232,7 +236,8 @@ def run_simulation(circuit_definition: list, shots: int = 1024, num_qubits: int 
             'circuit_diagram': img_str,
             'bloch_vectors': bloch_vectors,
             'measured_qubits': measured_qubits,
-            'calc_steps': calc_steps
+            'calc_steps': calc_steps,
+            'latex': history
         }
 
     except Exception as e:
