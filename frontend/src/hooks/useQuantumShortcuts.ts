@@ -18,6 +18,7 @@ export function useQuantumShortcuts({
     pushQuantumHistory,
     undoQuantum,
     redoQuantum,
+    setQuantumSelectedStep,
   } = useCircuitStore();
 
   const [quantumClipboard, setQuantumClipboard] = useState<
@@ -28,15 +29,58 @@ export function useQuantumShortcuts({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
 
+      // 矢印キー: 選択枠（青枠）を1セルずつ移動する
+      const arrowDelta: Record<string, { dq: number; ds: number }> = {
+        ArrowUp: { dq: -1, ds: 0 },
+        ArrowDown: { dq: 1, ds: 0 },
+        ArrowLeft: { dq: 0, ds: -1 },
+        ArrowRight: { dq: 0, ds: 1 },
+      };
+      const delta = arrowDelta[e.key];
+      if (delta && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+        if (selectedCells.length === 0) return;
+
+        // ページスクロールなど既定の動作を抑止する
+        e.preventDefault();
+
+        const canMove = selectedCells.every(cell => {
+          const q = cell.q + delta.dq;
+          const s = cell.s + delta.ds;
+          return q >= 0 && q < quantumGrid.length && s >= 0 && s < quantumNumSlots;
+        });
+        if (!canMove) return;
+
+        const movedCells = selectedCells.map(cell => ({
+          q: cell.q + delta.dq,
+          s: cell.s + delta.ds,
+        }));
+        setSelectedCells(movedCells);
+
+        // 計算過程パネルの選択行ハイライトも選択枠に合わせる
+        const slots = new Set(movedCells.map(cell => cell.s));
+        const gateCells = movedCells.filter(cell => quantumGrid[cell.q]?.[cell.s]);
+        if (slots.size === 1 && gateCells.length > 0) {
+          setQuantumSelectedStep({
+            qubits: Array.from(new Set(gateCells.map(cell => cell.q))),
+            slot: movedCells[0].s,
+            source: 'canvas',
+          });
+        } else {
+          setQuantumSelectedStep(null);
+        }
+        return;
+      }
+
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (selectedCells.length > 0) {
+        // 選択セルにゲートがある場合のみ削除する（空セルでの連打で履歴を汚さない）
+        if (selectedCells.length > 0 && selectedCells.some((cell) => quantumGrid[cell.q]?.[cell.s])) {
           pushQuantumHistory();
           const newGrid = [...quantumGrid.map((row) => [...row])];
           selectedCells.forEach((cell) => {
             newGrid[cell.q][cell.s] = null;
           });
           setQuantumGrid(newGrid);
-          setSelectedCells([]);
+          // 選択枠は残したままにして、矢印キーで続けて移動・削除できるようにする
         }
       } else if (e.ctrlKey || e.metaKey) {
         switch (e.key.toLowerCase()) {
@@ -182,6 +226,7 @@ export function useQuantumShortcuts({
     setQuantumGrid,
     quantumNumSlots,
     setSelectedCells,
+    setQuantumSelectedStep,
   ]);
 
   return {
